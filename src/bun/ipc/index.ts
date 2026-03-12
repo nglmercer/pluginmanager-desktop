@@ -1,6 +1,9 @@
 import { BrowserView, BrowserWindow } from "electrobun/bun";
 import { BasePluginManager } from "../manager/baseplugin";
 import { PLATFORMS } from "../constants";
+import { pluginAPI } from "../manager/plugin-api";
+import { join } from "node:path";
+import * as fs from "node:fs";
 
 /**
  * Plugin information for IPC
@@ -46,6 +49,7 @@ export interface WindowStatus {
 export class IpcHandler {
   private window: BrowserWindow | null = null;
   private manager: BasePluginManager | null = null;
+  private rpc: ReturnType<typeof BrowserView.defineRPC> | null = null;
 
   /**
    * Initialize IPC with plugin manager
@@ -69,7 +73,7 @@ export class IpcHandler {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   private setupRpc(): void {
     // Define RPC for handling requests from webview
-    BrowserView.defineRPC({
+    this.rpc = BrowserView.defineRPC({
       handlers: {
         // Requests from webview to Bun
         requests: {
@@ -136,6 +140,103 @@ export class IpcHandler {
               isOpen: this.window !== null,
               isFocused: this.window !== null,
             };
+          },
+
+          // ===== Plugin Installer API =====
+
+          // List installed plugins
+          listInstalledPlugins: () => {
+            return pluginAPI.listPlugins();
+          },
+
+          // Install plugin from GitHub
+          installFromGitHub: async (params: unknown) => {
+            const p = params as { repo: string; version?: string; assetName?: string };
+            return await pluginAPI.installFromGitHub({
+              repo: p.repo,
+              version: p.version,
+              assetName: p.assetName,
+            });
+          },
+
+          // Install plugin from zip
+          installFromZip: async (params: unknown) => {
+            const p = params as { zipPath: string; pluginName?: string };
+            return await pluginAPI.installFromZip(p.zipPath, p.pluginName);
+          },
+
+          // Remove plugin
+          removePlugin: (params: unknown) => {
+            const p = params as { pluginName: string };
+            return pluginAPI.removePlugin(p.pluginName);
+          },
+
+          // Get GitHub releases
+          getGitHubReleases: async (params: unknown) => {
+            const p = params as { repo: string };
+            return await pluginAPI.getGitHubReleases(p.repo);
+          },
+
+          // Get latest GitHub release
+          getLatestRelease: async (params: unknown) => {
+            const p = params as { repo: string };
+            return await pluginAPI.getLatestRelease(p.repo);
+          },
+
+          // Get plugins directory
+          getPluginsDir: (): string => {
+            return pluginAPI.getPluginsDir();
+          },
+
+          // ===== Plugin Management =====
+
+          // Search plugins by name
+          searchPlugins: (params: unknown) => {
+            const p = params as { query: string };
+            const plugins = pluginAPI.listPlugins();
+            if (!p.query) return plugins;
+            const query = p.query.toLowerCase();
+            return plugins.filter(
+              (plugin) =>
+                plugin.name.toLowerCase().includes(query) ||
+                plugin.packageJson?.name?.toLowerCase().includes(query) ||
+                plugin.packageJson?.description?.toLowerCase().includes(query)
+            );
+          },
+
+          // Check if plugin is installed
+          isPluginInstalled: (params: unknown) => {
+            const p = params as { pluginName: string };
+            return pluginAPI.isPluginInstalled(p.pluginName);
+          },
+
+          // Upload plugin from webview (receives base64 encoded zip)
+          uploadPlugin: async (params: unknown) => {
+            const p = params as { fileName: string; base64Data: string };
+            const tempPath = join(pluginAPI.getPluginsDir(), "temp", p.fileName);
+            
+            // Ensure temp directory exists
+            const tempDir = join(pluginAPI.getPluginsDir(), "temp");
+            if (!fs.existsSync(tempDir)) {
+              fs.mkdirSync(tempDir, { recursive: true });
+            }
+            
+            // Write file
+            const buffer = new Uint8Array(Buffer.from(p.base64Data, "base64"));
+            fs.writeFileSync(tempPath, buffer);
+            
+            // Install from the temp file
+            const pluginName = p.fileName.replace(/\.zip$/i, "");
+            const result = await pluginAPI.installFromZip(tempPath, pluginName);
+            
+            // Clean up temp file
+            try {
+              fs.unlinkSync(tempPath);
+            } catch (e) {
+              console.log("[IPC] Could not remove temp file:", e);
+            }
+            
+            return result;
           },
         },
         // Messages from webview to Bun
@@ -232,6 +333,7 @@ export class IpcHandler {
       url,
       frame: { width: 1200, height: 800, x: 100, y: 100 },
       titleBarStyle: "default",
+      rpc: this.rpc ?? undefined,
     });
     return this.window;
   }

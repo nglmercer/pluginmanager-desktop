@@ -29,7 +29,7 @@ function openMainWindow(): void {
 
 	// Create new window with IPC
 	const win = ipcHandler.openWindow("views://mainview/index.html");
-	
+	win.webview.openDevTools();
 	// Set up window close handler
 	win.on("close", () => {
 		console.log("Window closed");
