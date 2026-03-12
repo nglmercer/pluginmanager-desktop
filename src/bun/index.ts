@@ -1,8 +1,15 @@
 import { Tray, Utils } from "electrobun/bun";
 import { TrayClickedEvent } from "./index.d";
 import { main } from "./pluginmanager";
+import { ontrayevent, MenuBuilder } from "./constants/tray";
+import { ipcHandler } from "./ipc";
 
-// Create a system tray icon with an image
+/**
+ * Plugin Manager - Modular Entry Point
+ * Uses IPC for plugin communication and modular tray/window management
+ */
+
+// Create tray icon
 const tray = new Tray({
 	title: "Plugin Manager",
 	image: "views://assets/tray-icon.svg",
@@ -10,45 +17,83 @@ const tray = new Tray({
 	height: 22,
 });
 
+/**
+ * Window management functions
+ */
+function openMainWindow(): void {
+	// If window exists, focus it
+	if (ipcHandler.isWindowOpen()) {
+		ipcHandler.focusWindow();
+		return;
+	}
+
+	// Create new window with IPC
+	const win = ipcHandler.openWindow("views://mainview/index.html");
+	
+	// Set up window close handler
+	win.on("close", () => {
+		console.log("Window closed");
+	});
+
+	console.log("Main window opened");
+}
+
+function closeMainWindow(): void {
+	ipcHandler.closeWindow();
+	console.log("Main window closed");
+}
+
+// Initialize plugin manager
 main().then((result) => {
-	console.log(Object.keys(result));
+	console.log("Plugins loaded:", Object.keys(result));
+	
+	// Initialize IPC with plugin manager
+	ipcHandler.initialize(result.manager);
+	
+	console.log("IPC Handler initialized");
 });
 
-// Set up the tray context menu
-tray.setMenu([
-	{ type: "normal", label: "Electrobun Docs", action: "docs" },
-	{ type: "normal", label: "Colab", action: "colab" },
-	{ type: "normal", label: "Electrobun Github", action: "github" },
-	{ type: "divider" },
-	{ type: "normal", label: "Quit", action: "quit" },
-]);
+// Set up tray menu using MenuBuilder
+tray.setMenu(
+	MenuBuilder.create()
+		.addItem("Open Window", "open")
+		.addItem("Electrobun Docs", "docs")
+		.addItem("Colab", "colab")
+		.addItem("Electrobun Github", "github")
+		.addDivider()
+		.addItem("Close Window", "close")
+		.addDivider()
+		.addItem("Quit", "quit")
+		.build()
+);
 
-// Handle tray events (both icon clicks and menu item clicks fire this event)
-// The action property indicates which item was clicked
-tray.on("tray-clicked", (event) => {
+// Handle tray events
+tray.on(ontrayevent, (event) => {
 	const typedEvent = event as unknown as TrayClickedEvent;
 	const action = typedEvent.data?.action;
 
-	// Handle menu item clicks
 	switch (action) {
+		case "open":
+			openMainWindow();
+			break;
+		case "close":
+			closeMainWindow();
+			break;
 		case "docs":
 			Utils.openExternal("https://electrobun.dev");
-			break;
-		case "colab":
-			Utils.openExternal("https://blackboard.sh/colab/");
 			break;
 		case "github":
 			Utils.openExternal("https://github.com/blackboardsh/electrobun");
 			break;
 		case "quit":
+			closeMainWindow();
 			tray.remove();
 			process.exit(0);
 			break;
 		default:
-			// Handle tray icon click (no action = icon itself was clicked)
-			console.log("Tray icon clicked (no menu action)");
+			console.log("Tray icon clicked");
 			break;
 	}
 });
 
-console.log("Tray app started! Look for it in your menu bar.");
+console.log("Plugin Manager started! Look for the tray icon.");

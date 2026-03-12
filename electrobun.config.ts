@@ -15,13 +15,15 @@ export default {
 		},
 		views: {
 			mainview: {
-				entrypoint: "src/mainview/index.ts",
+				entrypoint: "src/mainview/index.html",
 			},
 		},
 		copy: {
 			"src/mainview/index.html": "views/mainview/index.html",
 			"src/mainview/index.css": "views/mainview/index.css",
+			"src/mainview/index.ts": "views/mainview/index.ts",
 			"src/assets": "views/assets",
+			"src/shared": "views/shared",
 		},
 		mac: {
 			bundleCEF: false,
