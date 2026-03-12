@@ -1,9 +1,10 @@
 import { PluginManager } from "bun_plugins";
 import { RuleEngine } from "trigger_system/node";
 import { join } from "node:path";
-import { ActionRegistryPlugin } from "./Register";
+import { actionRegistryPlugin, ActionRegistryPlugin } from "./Register";
 import { ensureDir, getBaseDir } from "../utils/filepath";
 import { PLUGIN_NAMES } from "../constants";
+import { helpers } from "./defaults/helpers";
 /**
  * Gestor de plugins personalizado para TTS
  * Extiende PluginManager para asegurar que el ActionRegistryPlugin esté siempre cargado
@@ -11,6 +12,7 @@ import { PLUGIN_NAMES } from "../constants";
 export class BasePluginManager extends PluginManager {
   public engine: RuleEngine;
   public alreadyLoaded: boolean = false;
+  public actionRegistryPlugin: ActionRegistryPlugin | null = null;
   public pluginsDir = join(getBaseDir(), "plugins");
   constructor() {
     super(undefined,{
@@ -20,7 +22,12 @@ export class BasePluginManager extends PluginManager {
     this.engine = new RuleEngine({ rules: [], globalSettings: { debugMode: true } });
     
     // Registrar los plugins core automáticamente
-    this.register(new ActionRegistryPlugin());
+    this.actionRegistryPlugin = actionRegistryPlugin;
+    //this.actionRegistryPlugin.register("helpers.last", helpers.last);
+    Object.entries(helpers).forEach(([name, fn]) => {
+      this.actionRegistryPlugin?.register(name, fn);
+    });
+    this.register(this.actionRegistryPlugin);
   }
 
   /**

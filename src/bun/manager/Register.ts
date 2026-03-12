@@ -3,7 +3,6 @@ import type { ActionHandler } from "trigger_system/node";
 import { ActionRegistry } from "trigger_system/node";
 import { PLUGIN_NAMES } from "../constants";
 
-
 export class HelperRegistry {
   private static instance: HelperRegistry;
   private helpers: Record<string, Function> = {};
