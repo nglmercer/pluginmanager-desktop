@@ -21,7 +21,6 @@ export class BasePluginManager extends PluginManager {
     
     // Registrar los plugins core automáticamente
     this.register(new ActionRegistryPlugin());
-    console.log("📦 BasePluginManager: Plugins ActionRegistry y RuleTester registrados");
   }
 
   /**
@@ -29,13 +28,17 @@ export class BasePluginManager extends PluginManager {
    * @param eventName - Nombre del evento (ej: 'chat', 'gift', 'comment')
    * @param data - Datos del evento (objeto con la estructura del evento)
    */
-  async emulateEvent(eventName: string, data: any) {
+  async emulateEvent(eventName: string, data: Record<string, unknown>) {
     const registryPlugin = (await this.getPlugin(
       PLUGIN_NAMES.ACTION_REGISTRY
     )) as ActionRegistryPlugin;
     const pluginHelpers = registryPlugin?.Helpers || {};
     
-    console.log(`[EMULATE] Evento: ${eventName}`, data);
+    console.log(`[EMULATE]`, {
+        eventName,
+        data,
+        pluginHelpers
+    });
     this.engine.processEventSimple(eventName, data, pluginHelpers);
   }
 
