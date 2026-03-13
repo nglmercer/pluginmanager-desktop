@@ -2,7 +2,7 @@ import { BrowserView, BrowserWindow, Utils } from "electrobun/bun";
 import { BasePluginManager } from "../manager/baseplugin";
 import { PLATFORMS } from "../constants";
 import { pluginAPI } from "../manager/plugin-api";
-
+import { PLUGIN_NAMES } from "../constants";
 /**
  * Plugin information for IPC
  */
@@ -66,6 +66,25 @@ export class IpcHandler {
   }
 
   /**
+   * Helper to handle async operations by returning an ID to the frontend
+   */
+  private handleAsync(promise: Promise<any>): { type: 'async_id'; id: string } {
+    const id = Math.random().toString(36).substring(7);
+    promise.then(data => {
+      if (this.window?.webview?.rpc) {
+        // @ts-ignore
+        this.window.webview.rpc.send.asyncResponse({ id, data });
+      }
+    }).catch(error => {
+      if (this.window?.webview?.rpc) {
+        // @ts-ignore
+        this.window.webview.rpc.send.asyncResponse({ id, error: String(error) });
+      }
+    });
+    return { type: 'async_id', id };
+  }
+
+  /**
    * Setup RPC handlers (Bun side - handles requests FROM webview)
    */
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -80,6 +99,10 @@ export class IpcHandler {
           getPlugins: (): PluginInfo[] => {
             if (!this.manager) return [];
             const plugins = this.manager.listPlugins();
+            // import const filter,for core plugin or default plugins
+            if (plugins.includes(PLUGIN_NAMES.ACTION_REGISTRY)) {
+              plugins.splice(plugins.indexOf(PLUGIN_NAMES.ACTION_REGISTRY), 1);
+            }
             return plugins.map((id) => ({
               id,
               name: id,
@@ -136,7 +159,7 @@ export class IpcHandler {
           // Remove plugin
           removePlugin: (params: unknown) => {
             const p = params as { pluginName: string };
-            return pluginAPI.removePlugin(p.pluginName);
+            return this.handleAsync(pluginAPI.removePlugin(p.pluginName));
           },
 
           // Get plugins directory
@@ -145,17 +168,19 @@ export class IpcHandler {
           },
 
           // Open plugins folder in file explorer
-          openPluginsFolder: async () => {
-             const pluginsDir = pluginAPI.getPluginsDir();
-             console.log(`[IPC] Opening plugins folder: ${pluginsDir}`);
-             try {
-               // In Electrobun, showItemInFolder opens the parent and highlights the item, 
-               // but if we pass a directory, it usually opens that directory.
-               return Utils.showItemInFolder(pluginsDir);
-             } catch (e) {
-               console.error("[IPC] Failed to open plugins folder:", e);
-               return false;
-             }
+          openPluginsFolder: () => {
+             return this.handleAsync((async () => {
+               const pluginsDir = pluginAPI.getPluginsDir();
+               console.log(`[IPC] Opening plugins folder: ${pluginsDir}`);
+               try {
+                 // In Electrobun, showItemInFolder opens the parent and highlights the item, 
+                 // but if we pass a directory, it usually opens that directory.
+                 return Utils.showItemInFolder(pluginsDir);
+               } catch (e) {
+                 console.error("[IPC] Failed to open plugins folder:", e);
+                 return false;
+               }
+             })());
           },
 
           // Get window status

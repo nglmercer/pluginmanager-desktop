@@ -1,6 +1,6 @@
 import { LitElement, html, css } from "lit";
 import { customElement, state, query } from "lit/decorators.js";
-import { electroview } from "./rpc.js";
+import { invokeRpc } from "./rpc.js";
 import type { PluginInfo, RemoveResult } from "./types.js";
 
 // Import modular components
@@ -102,7 +102,7 @@ export class PluginManager extends LitElement {
 
   private async loadPlugins(): Promise<void> {
     try {
-      const result = await electroview.rpc!.request.getPlugins({}) as PluginInfo[];
+      const result = await invokeRpc("getPlugins", {}) as PluginInfo[];
       this.plugins = result || [];
     } catch (e: unknown) {
       this.error = `Failed to load plugins: ${(e as Error).message}`;
@@ -119,7 +119,7 @@ export class PluginManager extends LitElement {
     this.success = "";
 
     try {
-      const result = await electroview.rpc!.request.removePlugin({
+      const result = await invokeRpc("removePlugin", {
         pluginName,
       }) as RemoveResult;
 

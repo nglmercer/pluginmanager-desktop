@@ -95,9 +95,9 @@ export class PluginList extends LitElement {
   }
 
   private async handleOpenFolder(): Promise<void> {
-     // Import electroview to call RPC
-     const { electroview } = await import("../rpc.js");
-     await electroview.rpc!.request.openPluginsFolder({});
+     // Import invokeRpc to call RPC safely with async fallback
+     const { invokeRpc } = await import("../rpc.js");
+     await invokeRpc("openPluginsFolder", {});
   }
 
   render() {
