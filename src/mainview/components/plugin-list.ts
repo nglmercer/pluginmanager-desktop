@@ -125,15 +125,15 @@ export class PluginList extends LitElement {
             <div class="plugin-item">
               <div class="plugin-info">
                 <div class="plugin-name">
-                  ${plugin.packageJson?.name || plugin.name}
+                  ${plugin.name}
                 </div>
                 <div class="plugin-version">
-                  ${plugin.packageJson?.version || "Unknown version"}
+                  ${plugin.version}
                 </div>
-                ${plugin.packageJson?.description
+                ${plugin.description
                   ? html`
                       <div class="plugin-description">
-                        ${plugin.packageJson.description}
+                        ${plugin.description}
                       </div>
                     `
                   : ""}

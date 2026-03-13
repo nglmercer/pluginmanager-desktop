@@ -3,22 +3,19 @@
  * Provides an API for installing, removing, and managing plugins
  */
 
-import { basename } from "node:path";
 import * as fs from "node:fs";
 import {
   PluginInstaller,
   installFromGitHub,
   installFromZip,
-  listInstalledPlugins,
   removePlugin,
   isPluginInstalled,
   type PluginDownloadOptions,
   type PluginInstallResult,
-  type LocalPluginInfo,
   type GitHubRelease,
 } from "./plugin-installer";
 import { BasePluginManager } from "./baseplugin";
-
+import type { PluginInfo } from "../ipc";
 // ============================================================================
 // Types
 // ============================================================================
@@ -29,7 +26,7 @@ export interface PluginManagerAPI {
   installFromZip: (zipPath: string, pluginName?: string) => Promise<PluginInstallResult>;
   
   // Management
-  listPlugins: () => LocalPluginInfo[];
+  listPlugins: (manager: BasePluginManager) => PluginInfo[];
   removePlugin: (pluginName: string) => { success: boolean; error?: string };
   isPluginInstalled: (pluginName: string) => boolean;
   
@@ -96,11 +93,15 @@ export const pluginAPI: PluginManagerAPI = {
   /**
    * List all installed plugins
    */
-  listPlugins: (): any[] => {
-    return listInstalledPlugins().map(plugin => ({
-      ...plugin,
-      id: basename(plugin.path)
-    }));
+  listPlugins: (manager: BasePluginManager) => {
+      if (!manager) return [];
+      const plugins = manager.listPlugins();
+      return plugins.map((id) => ({
+        id,
+        name: id,
+        version: "1.0.0",
+        enabled: true,
+      }));
   },
 
   /**

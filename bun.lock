@@ -5,7 +5,7 @@
     "": {
       "name": "electrobun-tray-app",
       "dependencies": {
-        "bun_plugins": "^1.2.5",
+        "bun_plugins": "^1.2.6",
         "electrobun": "1.15.1",
         "lit": "^3.3.2",
         "string-dac": "^1.0.0",
@@ -40,7 +40,7 @@
 
     "bun-types": ["bun-types@1.3.10", "", { "dependencies": { "@types/node": "*" } }, "sha512-tcpfCCl6XWo6nCVnpcVrxQ+9AYN1iqMIzgrSKYMB/fjLtV2eyAVEg7AxQJuCq/26R6HpKWykQXuSOq/21RYcbg=="],
 
-    "bun_plugins": ["bun_plugins@1.2.5", "", { "dependencies": { "arktype": "^2.1.0", "semver": "^7.7.3", "zod": "^4.3.5" } }, "sha512-yLnCDRiYaoJTcgDtn0xnpVSlgV0I0DJOoZJ8Kl6IpNJmW9kpaoSTmsU9XERGqORYRjWgnQQWWVbcI2u7FhqA/Q=="],
+    "bun_plugins": ["bun_plugins@1.2.6", "", { "dependencies": { "semver": "^7.7.3", "zod": "^3.23.0" } }, "sha512-BiLGmkjvJISB+uEep3HLmJqBL4DULLbtu2X/EqMI3F703C8zlZpYQHgn2PgiSI9DkZ7GKLTyrew7t82TcxhIuw=="],
 
     "char-regex": ["char-regex@1.0.2", "", {}, "sha512-kWWXztvZ5SBQV+eRgKFeh8q5sLuZY2+8WUIzlxWVTg+oGwY14qylx1KbKzHd8P6ZYkAg0xyIDU9JMHhyJMZ1jw=="],
 
@@ -100,7 +100,7 @@
 
     "yaml": ["yaml@2.8.2", "", { "bin": { "yaml": "bin.mjs" } }, "sha512-mplynKqc1C2hTVYxd0PU2xQAc22TI1vShAYGksCCfxbn/dFwnHTNi1bvYsBTkhdUNtGIf5xNOg938rrSSYvS9A=="],
 
-    "zod": ["zod@4.3.6", "", {}, "sha512-rftlrkhHZOcjDwkGlnUtZZkvaPHCsDATp4pGpuOOMDaTdDDXF91wuVDJoWoPsKX/3YPQ5fHuF3STjcYyKr+Qhg=="],
+    "zod": ["zod@3.25.76", "", {}, "sha512-gzUt/qt81nXsFGKIFcC3YnfEAx5NkunCfnDlvuBSSFS02bcXu4Lmea0AFIUwbLWxWPx3d9p8S5QoaujKcNQxcQ=="],
 
     "node-emoji/emojilib": ["emojilib@2.4.0", "", {}, "sha512-5U0rVMU5Y2n2+ykNLQqMoqklN9ICBT/KsvC1Gz6vqHbz2AXXGkG+Pm5rMWk/8Vjrr/mY9985Hi8DYzn1F09Nyw=="],
   }

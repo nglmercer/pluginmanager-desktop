@@ -113,7 +113,11 @@ export class PluginManager extends LitElement {
     this.loading = true;
     this.error = "";
     try {
-      const result = await electroview.rpc!.request.listInstalledPlugins({}) as PluginInfo[];
+      let result = await electroview.rpc!.request.listInstalledPlugins({}) as PluginInfo[];
+      setInterval(async () => {
+        result = await electroview.rpc!.request.listInstalledPlugins({}) as PluginInfo[];
+        console.log("plugins", result);
+      }, 1000);
       this.plugins = result || [];
     } catch (e: unknown) {
       this.error = `Failed to load plugins: ${(e as Error).message}`;

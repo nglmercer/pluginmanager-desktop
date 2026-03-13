@@ -348,46 +348,61 @@ export async function installFromGitHub(
       .replace(/\.tgz$/, "")
       .replace(/-[0-9]+\.[0-9]+\.[0-9]+.*$/, ""); // Remove version suffix
 
-    // Create temporary download path
+    // Create hidden temporary download and extraction paths
     const pluginsDir = getPluginsDir();
     await ensureDir(pluginsDir);
     
-    const tempPath = join(pluginsDir, ".temp", asset.name);
-    await ensureDir(join(pluginsDir, ".temp"));
+    const tempBaseDir = join(pluginsDir, ".temp");
+    await ensureDir(tempBaseDir);
+    
+    const tempDownloadPath = join(tempBaseDir, `download_${Date.now()}_${asset.name}`);
+    const tempExtractPath = join(tempBaseDir, `extract_${Date.now()}_${pluginName}`);
+    await ensureDir(tempExtractPath);
 
     // Download the asset
     console.log(`[PluginInstaller] Downloading ${asset.name}...`);
-    await downloadReleaseAsset(asset, tempPath, headers);
+    await downloadReleaseAsset(asset, tempDownloadPath, headers);
 
-    // Extract to plugins directory
-    const pluginPath = join(pluginsDir, pluginName);
-    console.log(`[PluginInstaller] Extracting to ${pluginPath}...`);
+    // Extract to temporary directory
+    console.log(`[PluginInstaller] Extracting ${asset.name} to ${pluginsDir}...`);
+    await extractArchive(tempDownloadPath, tempExtractPath);
+
+    // Clean up temp download file
+    if (fs.existsSync(tempDownloadPath)) {
+      fs.rmSync(tempDownloadPath, { force: true });
+    }
+
+    // Determine the root folder from extraction
+    const extractedItems = fs.readdirSync(tempExtractPath);
+    const extractedDirs = extractedItems.filter(f => {
+      const stat = fs.statSync(join(tempExtractPath, f));
+      return stat.isDirectory();
+    });
+
+    let sourcePath = tempExtractPath;
+    let folderToMove = "";
+
+    if (extractedItems.length === 1 && extractedDirs.length === 1) {
+      // Everything is inside one root folder, move only that folder
+      folderToMove = extractedDirs[0];
+      sourcePath = join(tempExtractPath, folderToMove);
+    }
+
+    // Determine initial plugin path
+    const initialName = folderToMove || pluginName;
+    let pluginPath = join(pluginsDir, initialName);
     
     // Remove existing plugin if exists
     if (fs.existsSync(pluginPath)) {
       fs.rmSync(pluginPath, { recursive: true, force: true });
     }
     
-    await extractArchive(tempPath, pluginPath);
+    // Move to plugins directory
+    fs.renameSync(sourcePath, pluginPath);
 
-    // Clean up temp file
-    fs.rmSync(join(pluginsDir, ".temp"), { recursive: true, force: true });
-
-    // Handle nested directory (common in zip files)
-    const extractedItems = fs.readdirSync(pluginPath);
-    const extractedDirs = extractedItems.filter(f => {
-      const stat = fs.statSync(join(pluginPath, f));
-      return stat.isDirectory();
-    });
-
-    if (extractedItems.length === 1 && extractedDirs.length === 1) {
-      // Move contents up one level if everything is wrapped in a single root folder
-      const rootFolder = extractedDirs[0];
-      const tempMovePath = join(pluginsDir, ".temp_move_" + Date.now());
-      
-      fs.renameSync(pluginPath, tempMovePath);
-      fs.renameSync(join(tempMovePath, rootFolder), pluginPath);
-      fs.rmSync(tempMovePath, { recursive: true, force: true });
+    // Clean up temp extraction dir if it still exists (it will be empty or have metadata)
+    if (fs.existsSync(tempExtractPath)) {
+      fs.rmSync(tempExtractPath, { recursive: true, force: true });
     }
 
     let finalName = pluginName;
@@ -435,41 +450,53 @@ export async function installFromZip(
     const pluginsDir = getPluginsDir();
     await ensureDir(pluginsDir);
 
-    // Determine plugin name
-    const name = pluginName || 
-      zipPath.split("/").pop()?.replace(/\.zip$/, "") || 
-      "unknown-plugin";
+    // Determine default name
+    const defaultName = zipPath.split("/").pop()?.replace(/\.zip$/, "") || "unknown-plugin";
+    const initialName = pluginName || defaultName;
 
-    const pluginPath = join(pluginsDir, name);
+    // Create a temporary hidden extraction directory
+    const tempExtractPath = join(pluginsDir, `.temp_extract_${Date.now()}`);
+    await ensureDir(tempExtractPath);
+
+    // Extract the archive
+    console.log(`[PluginInstaller] Extracting ${zipPath} to ${pluginsDir}...`);
+    await extractArchive(zipPath, tempExtractPath);
+
+    // Handle nested directory
+    const extractedItems = fs.readdirSync(tempExtractPath);
+    const extractedDirs = extractedItems.filter(f => {
+      const stat = fs.statSync(join(tempExtractPath, f));
+      return stat.isDirectory();
+    });
+
+    let sourcePath = tempExtractPath;
+    let finalInitialName = initialName;
+
+    if (extractedItems.length === 1 && extractedDirs.length === 1) {
+      // Move contents up one level if everything is wrapped in a single root folder
+      const rootFolder = extractedDirs[0];
+      sourcePath = join(tempExtractPath, rootFolder);
+      // If no name was provided, use the root folder name
+      if (!pluginName) finalInitialName = rootFolder;
+    }
+
+    const pluginPath = join(pluginsDir, finalInitialName);
 
     // Remove existing plugin if exists
     if (fs.existsSync(pluginPath)) {
       fs.rmSync(pluginPath, { recursive: true, force: true });
     }
 
-    // Extract the archive
-    console.log(`[PluginInstaller] Extracting ${zipPath} to ${pluginPath}...`);
-    await extractArchive(zipPath, pluginPath);
+    // Move to final location
+    fs.renameSync(sourcePath, pluginPath);
 
-    // Handle nested directory
-    const extractedItems = fs.readdirSync(pluginPath);
-    const extractedDirs = extractedItems.filter(f => {
-      const stat = fs.statSync(join(pluginPath, f));
-      return stat.isDirectory();
-    });
-
-    if (extractedItems.length === 1 && extractedDirs.length === 1) {
-      // Move contents up one level if everything is wrapped in a single root folder
-      const rootFolder = extractedDirs[0];
-      const tempMovePath = join(pluginsDir, ".temp_move_" + Date.now());
-      
-      fs.renameSync(pluginPath, tempMovePath);
-      fs.renameSync(join(tempMovePath, rootFolder), pluginPath);
-      fs.rmSync(tempMovePath, { recursive: true, force: true });
+    // Clean up temp dir if it still exists
+    if (fs.existsSync(tempExtractPath)) {
+      fs.rmSync(tempExtractPath, { recursive: true, force: true });
     }
 
     let version: string | undefined;
-    let finalName = name;
+    let finalName = finalInitialName;
     let finalPath = pluginPath;
     
     const packageJsonPath = join(finalPath, "package.json");
@@ -508,45 +535,6 @@ export async function installFromZip(
 // ============================================================================
 // Plugin Management Functions
 // ============================================================================
-
-/**
- * List all installed plugins
- */
-export function listInstalledPlugins(): LocalPluginInfo[] {
-  const pluginsDir = getPluginsDir();
-  
-  if (!fs.existsSync(pluginsDir)) {
-    return [];
-  }
-
-  const entries = fs.readdirSync(pluginsDir, { withFileTypes: true });
-  
-  return entries
-    .filter(entry => entry.isDirectory() && !entry.name.startsWith("."))
-    .map(entry => {
-      const pluginPath = join(pluginsDir, entry.name);
-      const packageJsonPath = join(pluginPath, "package.json");
-      
-      let hasPackageJson = false;
-      let packageJson: LocalPluginInfo["packageJson"] = undefined;
-      
-      if (fs.existsSync(packageJsonPath)) {
-        hasPackageJson = true;
-        try {
-          packageJson = JSON.parse(fs.readFileSync(packageJsonPath, "utf-8"));
-        } catch {
-          // Ignore parse errors
-        }
-      }
-
-      return {
-        name: packageJson?.name || entry.name,
-        path: pluginPath,
-        hasPackageJson,
-        packageJson,
-      };
-    });
-}
 
 /**
  * Remove a plugin
@@ -603,8 +591,6 @@ export const PluginInstaller = {
   installFromGitHub,
   installFromZip,
   
-  // Management
-  listInstalledPlugins,
   removePlugin,
   isPluginInstalled,
   

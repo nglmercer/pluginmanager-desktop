@@ -146,7 +146,7 @@ export class IpcHandler {
 
           // List installed plugins
           listInstalledPlugins: () => {
-            return pluginAPI.listPlugins();
+            return pluginAPI.listPlugins(this.manager!);
           },
 
           // Install plugin from GitHub
@@ -193,14 +193,14 @@ export class IpcHandler {
           // Search plugins by name
           searchPlugins: (params: unknown) => {
             const p = params as { query: string };
-            const plugins = pluginAPI.listPlugins();
+            const plugins = pluginAPI.listPlugins(this.manager!);
             if (!p.query) return plugins;
             const query = p.query.toLowerCase();
             return plugins.filter(
               (plugin) =>
-                plugin.name.toLowerCase().includes(query) ||
-                plugin.packageJson?.name?.toLowerCase().includes(query) ||
-                plugin.packageJson?.description?.toLowerCase().includes(query)
+                plugin.name?.toLowerCase().includes(query) ||
+                plugin.id?.toLowerCase().includes(query) ||
+                plugin.version?.toLowerCase().includes(query)
             );
           },
 
@@ -213,10 +213,10 @@ export class IpcHandler {
           // Upload plugin from webview (receives base64 encoded zip)
           uploadPlugin: async (params: unknown) => {
             const p = params as { fileName: string; base64Data: string };
-            const tempPath = join(pluginAPI.getPluginsDir(), "temp", p.fileName);
+            const tempDir = join(pluginAPI.getPluginsDir(), ".temp");
+            const tempPath = join(tempDir, p.fileName);
             
             // Ensure temp directory exists
-            const tempDir = join(pluginAPI.getPluginsDir(), "temp");
             if (!fs.existsSync(tempDir)) {
               fs.mkdirSync(tempDir, { recursive: true });
             }
@@ -225,13 +225,14 @@ export class IpcHandler {
             const buffer = new Uint8Array(Buffer.from(p.base64Data, "base64"));
             fs.writeFileSync(tempPath, buffer);
             
-            // Install from the temp file
-            const pluginName = p.fileName.replace(/\.zip$/i, "");
-            const result = await pluginAPI.installFromZip(tempPath, pluginName);
+            // Install from the temp file - don't pass pluginName so installer can detect it
+            const result = await pluginAPI.installFromZip(tempPath);
             
             // Clean up temp file
             try {
-              fs.unlinkSync(tempPath);
+              if (fs.existsSync(tempPath)) {
+                fs.unlinkSync(tempPath);
+              }
             } catch (e) {
               console.log("[IPC] Could not remove temp file:", e);
             }

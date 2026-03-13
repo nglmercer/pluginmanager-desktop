@@ -2,11 +2,9 @@
 
 export interface PluginInfo {
   name: string;
-  packageJson?: {
-    name?: string;
-    version?: string;
-    description?: string;
-  };
+  id: string;
+  version: string;
+  description?: string;
 }
 
 export interface GitHubAsset {
