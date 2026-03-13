@@ -10,7 +10,7 @@ import { GitHubSearch } from "./components/github-search.js";
 import { PluginUpload } from "./components/plugin-upload.js";
 
 // Import theme system
-import { darkTheme, getThemeManager, generateThemeCSS, baseStyles } from "./styles/index.js";
+import { getThemeManager, baseStyles } from "./styles/index.js";
 
 // Register the child components
 import "./components/plugin-tabs.js";
@@ -25,7 +25,6 @@ import "./components/plugin-upload.js";
 @customElement("plugin-manager")
 export class PluginManager extends LitElement {
   static styles = [
-    css`:host {${generateThemeCSS(darkTheme)}}`,
     baseStyles,
     css`
     .plugin-manager {
@@ -95,17 +94,26 @@ export class PluginManager extends LitElement {
   @query("plugin-upload") private _uploadElement!: PluginUpload;
 
   private themeManager = getThemeManager();
+  private _themeUnsubscribe?: () => void;
 
   connectedCallback() {
     super.connectedCallback();
     this.loadPlugins();
+    this._themeUnsubscribe = this.themeManager.subscribe(() => this.requestUpdate());
+  }
+
+  disconnectedCallback() {
+    super.disconnectedCallback();
+    if (this._themeUnsubscribe) {
+      this._themeUnsubscribe();
+    }
   }
 
   private async loadPlugins(): Promise<void> {
     this.loading = true;
     this.error = "";
     try {
-      const result = await electroview.rpc!.request.listInstalledPlugins() as PluginInfo[];
+      const result = await electroview.rpc!.request.listInstalledPlugins({}) as PluginInfo[];
       this.plugins = result || [];
     } catch (e: unknown) {
       this.error = `Failed to load plugins: ${(e as Error).message}`;

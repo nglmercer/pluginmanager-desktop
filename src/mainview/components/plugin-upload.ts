@@ -2,7 +2,7 @@ import { LitElement, html, css } from "lit";
 import { customElement, property } from "lit/decorators.js";
 
 // Import theme system
-import { darkTheme, generateThemeCSS, baseStyles } from "../styles/index.js";
+import { baseStyles } from "../styles/index.js";
 
 /**
  * Plugin Upload Component
@@ -11,7 +11,6 @@ import { darkTheme, generateThemeCSS, baseStyles } from "../styles/index.js";
 @customElement("plugin-upload")
 export class PluginUpload extends LitElement {
   static styles = [
-    css`:host {${generateThemeCSS(darkTheme)}}`,
     baseStyles,
     css`
     p {

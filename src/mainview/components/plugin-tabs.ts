@@ -2,7 +2,7 @@ import { LitElement, html, css } from "lit";
 import { customElement, property } from "lit/decorators.js";
 
 // Import theme system
-import { darkTheme, generateThemeCSS, baseStyles } from "../styles/index.js";
+import { baseStyles } from "../styles/index.js";
 
 /**
  * Tab data structure
@@ -20,7 +20,6 @@ export interface TabData {
 @customElement("plugin-tabs")
 export class PluginTabs extends LitElement {
   static styles = [
-    css`:host {${generateThemeCSS(darkTheme)}}`,
     baseStyles,
     css`
     .tabs {

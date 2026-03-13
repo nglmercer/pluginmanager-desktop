@@ -3,7 +3,7 @@ import { customElement, property } from "lit/decorators.js";
 import type { PluginInfo } from "../types.js";
 
 // Import theme system
-import { darkTheme, generateThemeCSS, baseStyles } from "../styles/index.js";
+import { baseStyles } from "../styles/index.js";
 
 /**
  * Plugin List Component
@@ -12,7 +12,6 @@ import { darkTheme, generateThemeCSS, baseStyles } from "../styles/index.js";
 @customElement("plugin-list")
 export class PluginList extends LitElement {
   static styles = [
-    css`:host {${generateThemeCSS(darkTheme)}}`,
     baseStyles,
     css`
     .plugin-list {
@@ -142,7 +141,7 @@ export class PluginList extends LitElement {
               <div class="plugin-actions">
                 <button
                   class="btn-danger"
-                  @click=${() => this.handleRemove(plugin.name)}
+                  @click=${() => this.handleRemove((plugin as any).id || plugin.name)}
                 >
                   Uninstall
                 </button>

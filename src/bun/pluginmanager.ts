@@ -55,7 +55,9 @@ export async function main() {
   watcher.on("error", (err) => {
     console.error("Error watching rules:", err);
   });
-  manager.enableHotReload(manager.pluginsDir)
+  manager.enableHotReload(manager.pluginsDir);
+  const pluginsInfo = manager.getPluginStatus();
+  console.log("Plugins info:", pluginsInfo);
   return {
     engine,
     manager,

@@ -3,7 +3,7 @@
  * Provides an API for installing, removing, and managing plugins
  */
 
-import { join } from "node:path";
+import { basename } from "node:path";
 import * as fs from "node:fs";
 import {
   PluginInstaller,
@@ -96,8 +96,11 @@ export const pluginAPI: PluginManagerAPI = {
   /**
    * List all installed plugins
    */
-  listPlugins: (): LocalPluginInfo[] => {
-    return listInstalledPlugins();
+  listPlugins: (): any[] => {
+    return listInstalledPlugins().map(plugin => ({
+      ...plugin,
+      id: basename(plugin.path)
+    }));
   },
 
   /**
@@ -154,11 +157,15 @@ export const pluginAPI: PluginManagerAPI = {
    * Reload a specific plugin
    * Note: Full hot-reload requires the plugin to be previously loaded
    */
-  reloadPlugin: async (_pluginName: string, _manager: BasePluginManager): Promise<boolean> => {
-    // This is a placeholder for full hot-reload functionality
-    // The actual implementation depends on bun_plugins API
-    console.log(`[PluginAPI] Reload requested - hot reload is handled by BasePluginManager`);
-    return true;
+  reloadPlugin: async (pluginName: string, manager: BasePluginManager): Promise<boolean> => {
+    try {
+      await manager.reloadPlugin(pluginName);
+      console.log(`[PluginAPI] Successfully reloaded plugin: ${pluginName}`);
+      return true;
+    } catch (error) {
+      console.error(`[PluginAPI] Failed to reload plugin: ${pluginName}`, error);
+      return false;
+    }
   },
 };
 

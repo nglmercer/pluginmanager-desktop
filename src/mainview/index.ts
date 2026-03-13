@@ -1,3 +1,7 @@
+// Initialize theme manager
+import { getThemeManager } from "./styles/index.js";
+getThemeManager().applyToDocument();
+
 // Re-export the PluginManager component and types
 export { PluginManager } from "./plugin-manager.js";
 export type {

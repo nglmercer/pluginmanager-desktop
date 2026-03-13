@@ -13,6 +13,10 @@ export class ThemeManager {
   private constructor() {
     // Initialize from localStorage if available
     this.loadFromStorage();
+    // No DOM during SSR or before document is ready, but in this context it's fine
+    if (typeof document !== "undefined") {
+      this.applyToDocument();
+    }
   }
 
   static getInstance(): ThemeManager {

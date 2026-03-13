@@ -3,7 +3,7 @@ import { customElement, property, state } from "lit/decorators.js";
 import type { GitHubRelease, GitHubAsset } from "../types.js";
 
 // Import theme system
-import { darkTheme, generateThemeCSS, baseStyles } from "../styles/index.js";
+import { baseStyles } from "../styles/index.js";
 
 interface GitHubInstallDetail {
   repo: string;
@@ -17,7 +17,6 @@ interface GitHubInstallDetail {
 @customElement("github-search")
 export class GitHubSearch extends LitElement {
   static styles = [
-    css`:host {${generateThemeCSS(darkTheme)}}`,
     baseStyles,
     css`
     .card {
