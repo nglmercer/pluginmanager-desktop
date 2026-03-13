@@ -7,3 +7,16 @@ export type {
   InstallResult,
   RemoveResult,
 } from "./types.js";
+
+// Re-export theme system
+export {
+  darkTheme,
+  lightTheme,
+  generateThemeCSS,
+  baseStyles,
+  getThemeManager,
+  ThemeManager,
+  type ThemeMode,
+  type ThemeName,
+  type ThemeColors,
+} from "./styles/index.js";

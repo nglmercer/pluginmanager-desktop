@@ -2,6 +2,9 @@ import { LitElement, html, css } from "lit";
 import { customElement, property, state } from "lit/decorators.js";
 import type { GitHubRelease, GitHubAsset } from "../types.js";
 
+// Import theme system
+import { darkTheme, generateThemeCSS, baseStyles } from "../styles/index.js";
+
 interface GitHubInstallDetail {
   repo: string;
   asset: GitHubAsset;
@@ -13,82 +16,22 @@ interface GitHubInstallDetail {
  */
 @customElement("github-search")
 export class GitHubSearch extends LitElement {
-  static styles = css`
-    :host {
-      display: block;
-    }
-
+  static styles = [
+    css`:host {${generateThemeCSS(darkTheme)}}`,
+    baseStyles,
+    css`
     .card {
-      background: var(--card-bg, #2d2d2d);
+      background: var(--card-bg);
       border-radius: 8px;
       padding: 20px;
       margin-bottom: 15px;
-      border: 1px solid var(--border-color, #404040);
+      border: 1px solid var(--border-color);
     }
 
     .card h3 {
       margin: 0 0 15px 0;
-      color: var(--text-color, #e0e0e0);
+      color: var(--text-color);
       font-size: 1.1rem;
-    }
-
-    .form-group {
-      margin-bottom: 15px;
-    }
-
-    label {
-      display: block;
-      color: var(--text-color, #e0e0e0);
-      margin-bottom: 5px;
-      font-size: 14px;
-    }
-
-    input {
-      width: 100%;
-      padding: 10px;
-      border: 1px solid var(--border-color, #404040);
-      border-radius: 6px;
-      background: var(--bg-color, #1e1e1e);
-      color: var(--text-color, #e0e0e0);
-      font-size: 14px;
-      box-sizing: border-box;
-    }
-
-    input:focus {
-      outline: none;
-      border-color: var(--primary-color, #4a9eff);
-    }
-
-    button {
-      padding: 10px 20px;
-      border: none;
-      border-radius: 6px;
-      font-size: 14px;
-      cursor: pointer;
-      transition: opacity 0.2s, transform 0.1s;
-    }
-
-    button:hover {
-      opacity: 0.9;
-    }
-
-    button:active {
-      transform: scale(0.98);
-    }
-
-    button:disabled {
-      opacity: 0.5;
-      cursor: not-allowed;
-    }
-
-    .btn-primary {
-      background: var(--primary-color, #4a9eff);
-      color: white;
-    }
-
-    .btn-success {
-      background: var(--success-color, #4aff4a);
-      color: #1e1e1e;
     }
 
     .release-list {
@@ -101,18 +44,18 @@ export class GitHubSearch extends LitElement {
 
     .release-item {
       padding: 12px;
-      background: var(--bg-color, #1e1e1e);
+      background: var(--bg-color);
       border-radius: 6px;
-      border: 1px solid var(--border-color, #404040);
+      border: 1px solid var(--border-color);
       cursor: pointer;
     }
 
     .release-item:hover {
-      border-color: var(--primary-color, #4a9eff);
+      border-color: var(--primary-color);
     }
 
     .release-item.selected {
-      border-color: var(--primary-color, #4a9eff);
+      border-color: var(--primary-color);
     }
 
     .release-header {
@@ -123,17 +66,17 @@ export class GitHubSearch extends LitElement {
     }
 
     .release-tag {
-      color: var(--primary-color, #4a9eff);
+      color: var(--primary-color);
       font-weight: 600;
     }
 
     .release-date {
-      color: #666;
+      color: var(--text-muted);
       font-size: 12px;
     }
 
     .release-body {
-      color: #aaa;
+      color: var(--text-muted);
       font-size: 13px;
       margin-bottom: 10px;
     }
@@ -146,46 +89,25 @@ export class GitHubSearch extends LitElement {
     }
 
     .asset-tag {
-      background: var(--card-bg, #2d2d2d);
+      background: var(--card-bg);
       padding: 4px 10px;
       border-radius: 4px;
       font-size: 12px;
-      color: var(--text-color, #e0e0e0);
+      color: var(--text-color);
       cursor: pointer;
     }
 
     .asset-tag:hover {
-      background: var(--primary-color, #4a9eff);
+      background: var(--primary-color);
       color: white;
     }
 
     .asset-tag.selected {
-      background: var(--primary-color, #4a9eff);
+      background: var(--primary-color);
       color: white;
     }
-
-    .loading {
-      color: var(--primary-color, #4a9eff);
-      text-align: center;
-      padding: 20px;
-    }
-
-    .message {
-      padding: 10px;
-      border-radius: 6px;
-      margin-bottom: 15px;
-    }
-
-    .error {
-      color: var(--danger-color, #ff4a4a);
-      background: rgba(255, 74, 74, 0.1);
-    }
-
-    .success {
-      color: var(--success-color, #4aff4a);
-      background: rgba(74, 255, 74, 0.1);
-    }
-  `;
+  `
+  ];
 
   @property({ type: Boolean }) loading: boolean = false;
   @property({ type: String }) error: string = "";

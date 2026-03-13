@@ -9,6 +9,9 @@ import { PluginList } from "./components/plugin-list.js";
 import { GitHubSearch } from "./components/github-search.js";
 import { PluginUpload } from "./components/plugin-upload.js";
 
+// Import theme system
+import { darkTheme, getThemeManager, generateThemeCSS, baseStyles } from "./styles/index.js";
+
 // Register the child components
 import "./components/plugin-tabs.js";
 import "./components/plugin-list.js";
@@ -21,20 +24,10 @@ import "./components/plugin-upload.js";
  */
 @customElement("plugin-manager")
 export class PluginManager extends LitElement {
-  static styles = css`
-    :host {
-      display: block;
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
-        Oxygen, Ubuntu, sans-serif;
-      --primary-color: #4a9eff;
-      --danger-color: #ff4a4a;
-      --success-color: #4aff4a;
-      --bg-color: #1e1e1e;
-      --card-bg: #2d2d2d;
-      --text-color: #e0e0e0;
-      --border-color: #404040;
-    }
-
+  static styles = [
+    css`:host {${generateThemeCSS(darkTheme)}}`,
+    baseStyles,
+    css`
     .plugin-manager {
       padding: 20px;
       max-width: 800px;
@@ -58,14 +51,30 @@ export class PluginManager extends LitElement {
 
     .error {
       color: var(--danger-color);
-      background: rgba(255, 74, 74, 0.1);
+      background: var(--danger-muted);
     }
 
     .success {
       color: var(--success-color);
-      background: rgba(74, 255, 74, 0.1);
+      background: var(--success-muted);
     }
-  `;
+
+    .theme-toggle {
+      margin-left: auto;
+      background: transparent;
+      border: 1px solid var(--border-color);
+      padding: 6px 10px;
+      font-size: 16px;
+      cursor: pointer;
+      border-radius: 4px;
+      transition: background 0.2s;
+    }
+
+    .theme-toggle:hover {
+      background: var(--hover-bg);
+    }
+  `
+  ];
 
   @state() private activeTab: string = "installed";
   @state() private plugins: PluginInfo[] = [];
@@ -76,11 +85,16 @@ export class PluginManager extends LitElement {
   @state() private githubRepo: string = "";
   @state() private selectedRelease: GitHubRelease | null = null;
   @state() private selectedAsset: GitHubAsset | null = null;
+  //@ts-expect-error
+  @query("plugin-tabs") private _tabsElement!: PluginTabs;
+  //@ts-expect-error
+  @query("plugin-list") private _listElement!: PluginList;
+  //@ts-expect-error
+  @query("github-search") private _searchElement!: GitHubSearch;
+  //@ts-expect-error
+  @query("plugin-upload") private _uploadElement!: PluginUpload;
 
-  @query("plugin-tabs") private tabsElement!: PluginTabs;
-  @query("plugin-list") private listElement!: PluginList;
-  @query("github-search") private searchElement!: GitHubSearch;
-  @query("plugin-upload") private uploadElement!: PluginUpload;
+  private themeManager = getThemeManager();
 
   connectedCallback() {
     super.connectedCallback();
@@ -211,6 +225,13 @@ export class PluginManager extends LitElement {
     this.loadPlugins();
   }
 
+  /**
+   * Toggle between light and dark themes
+   */
+  private toggleTheme(): void {
+    this.themeManager.toggleTheme();
+  }
+
   render() {
     return html`
       <div class="plugin-manager">
@@ -228,6 +249,15 @@ export class PluginManager extends LitElement {
             />
           </svg>
           Plugin Manager
+          <button
+            class="theme-toggle"
+            @click=${this.toggleTheme}
+            title="Toggle theme"
+          >
+            ${this.themeManager.getMode() === "dark"
+              ? html`☀️`
+              : html`🌙`}
+          </button>
         </h2>
 
         <plugin-tabs

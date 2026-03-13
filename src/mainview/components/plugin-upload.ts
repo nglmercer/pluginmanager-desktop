@@ -1,61 +1,33 @@
 import { LitElement, html, css } from "lit";
 import { customElement, property } from "lit/decorators.js";
 
+// Import theme system
+import { darkTheme, generateThemeCSS, baseStyles } from "../styles/index.js";
+
 /**
  * Plugin Upload Component
  * Handles uploading plugin ZIP files
  */
 @customElement("plugin-upload")
 export class PluginUpload extends LitElement {
-  static styles = css`
-    :host {
-      display: block;
-    }
-
-    .card {
-      background: var(--card-bg, #2d2d2d);
-      border-radius: 8px;
-      padding: 20px;
-      margin-bottom: 15px;
-      border: 1px solid var(--border-color, #404040);
-    }
-
-    .card h3 {
-      margin: 0 0 15px 0;
-      color: var(--text-color, #e0e0e0);
-      font-size: 1.1rem;
-    }
-
+  static styles = [
+    css`:host {${generateThemeCSS(darkTheme)}}`,
+    baseStyles,
+    css`
     p {
-      color: #888;
+      color: var(--text-muted);
       margin-bottom: 15px;
-    }
-
-    .form-group {
-      margin-bottom: 15px;
-    }
-
-    label {
-      display: block;
-      color: var(--text-color, #e0e0e0);
-      margin-bottom: 5px;
-      font-size: 14px;
     }
 
     input[type="file"] {
+      position: absolute;
+      top: 0;
+      left: 0;
       width: 100%;
-      padding: 10px;
-      border: 1px solid var(--border-color, #404040);
-      border-radius: 6px;
-      background: var(--bg-color, #1e1e1e);
-      color: var(--text-color, #e0e0e0);
-      font-size: 14px;
-      box-sizing: border-box;
-    }
-
-    input[type="file"]:focus {
-      outline: none;
-      border-color: var(--primary-color, #4a9eff);
+      height: 100%;
+      opacity: 0;
+      cursor: pointer;
+      z-index: 2;
     }
 
     input:disabled {
@@ -63,66 +35,45 @@ export class PluginUpload extends LitElement {
       cursor: not-allowed;
     }
 
-    button {
-      padding: 10px 20px;
-      border: none;
-      border-radius: 6px;
-      font-size: 14px;
-      cursor: pointer;
-      transition: opacity 0.2s, transform 0.1s;
-    }
-
-    button:hover {
-      opacity: 0.9;
-    }
-
-    button:active {
-      transform: scale(0.98);
-    }
-
-    button:disabled {
-      opacity: 0.5;
-      cursor: not-allowed;
-    }
-
-    .btn-primary {
-      background: var(--primary-color, #4a9eff);
-      color: white;
-    }
-
     .drop-zone {
-      border: 2px dashed var(--border-color, #404040);
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      border: 2px dashed var(--border-color);
       border-radius: 8px;
       padding: 40px 20px;
       text-align: center;
       cursor: pointer;
+      overflow: hidden;
       transition: border-color 0.2s, background 0.2s;
     }
 
     .drop-zone:hover {
-      border-color: var(--primary-color, #4a9eff);
-      background: rgba(74, 158, 255, 0.05);
+      border-color: var(--primary-color);
+      background: var(--primary-muted);
     }
 
     .drop-zone.drag-over {
-      border-color: var(--primary-color, #4a9eff);
-      background: rgba(74, 158, 255, 0.1);
+      border-color: var(--primary-color);
+      background: var(--primary-muted);
     }
 
     .drop-zone svg {
       width: 48px;
       height: 48px;
-      color: #666;
+      color: var(--text-muted);
       margin-bottom: 15px;
     }
 
     .drop-zone p {
       margin: 0;
-      color: #888;
+      color: var(--text-muted);
     }
 
     .drop-zone .browse {
-      color: var(--primary-color, #4a9eff);
+      color: var(--primary-color);
       text-decoration: underline;
     }
 
@@ -131,7 +82,7 @@ export class PluginUpload extends LitElement {
       align-items: center;
       gap: 10px;
       padding: 12px;
-      background: var(--bg-color, #1e1e1e);
+      background: var(--bg-color);
       border-radius: 6px;
       margin-bottom: 15px;
     }
@@ -139,26 +90,27 @@ export class PluginUpload extends LitElement {
     .selected-file svg {
       width: 24px;
       height: 24px;
-      color: var(--primary-color, #4a9eff);
+      color: var(--primary-color);
     }
 
     .selected-file .file-name {
       flex: 1;
-      color: var(--text-color, #e0e0e0);
+      color: var(--text-color);
     }
 
     .selected-file .remove-btn {
       background: none;
       border: none;
-      color: #888;
+      color: var(--text-muted);
       cursor: pointer;
       padding: 4px;
     }
 
     .selected-file .remove-btn:hover {
-      color: var(--danger-color, #ff4a4a);
+      color: var(--danger-color);
     }
-  `;
+  `
+  ];
 
   @property({ type: Boolean }) loading: boolean = false;
   @property({ type: String }) selectedFile: string = "";

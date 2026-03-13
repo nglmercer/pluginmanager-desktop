@@ -374,26 +374,46 @@ export async function installFromGitHub(
     fs.rmSync(join(pluginsDir, ".temp"), { recursive: true, force: true });
 
     // Handle nested directory (common in zip files)
-    const extractedDirs = fs.readdirSync(pluginPath).filter(f => {
+    const extractedItems = fs.readdirSync(pluginPath);
+    const extractedDirs = extractedItems.filter(f => {
       const stat = fs.statSync(join(pluginPath, f));
       return stat.isDirectory();
     });
 
-    let finalPluginPath = pluginPath;
-    if (extractedDirs.length === 1) {
-      // Move contents up one level
-      const nestedPath = join(pluginPath, extractedDirs[0]);
-      const tempMovePath = join(pluginsDir, ".temp_move");
+    if (extractedItems.length === 1 && extractedDirs.length === 1) {
+      // Move contents up one level if everything is wrapped in a single root folder
+      const rootFolder = extractedDirs[0];
+      const tempMovePath = join(pluginsDir, ".temp_move_" + Date.now());
       
       fs.renameSync(pluginPath, tempMovePath);
-      fs.renameSync(tempMovePath, pluginPath);
-      finalPluginPath = join(pluginPath, extractedDirs[0]);
+      fs.renameSync(join(tempMovePath, rootFolder), pluginPath);
+      fs.rmSync(tempMovePath, { recursive: true, force: true });
+    }
+
+    let finalName = pluginName;
+    let finalPath = pluginPath;
+    const packageJsonPath = join(finalPath, "package.json");
+    if (fs.existsSync(packageJsonPath)) {
+      try {
+        const pkg = JSON.parse(fs.readFileSync(packageJsonPath, "utf-8"));
+        if (pkg.name && pkg.name !== pluginName) {
+          const newPath = join(pluginsDir, pkg.name);
+          if (fs.existsSync(newPath)) {
+            fs.rmSync(newPath, { recursive: true, force: true });
+          }
+          fs.renameSync(finalPath, newPath);
+          finalPath = newPath;
+          finalName = pkg.name;
+        }
+      } catch {
+        // Ignore parse errors
+      }
     }
 
     return {
       success: true,
-      pluginPath: finalPluginPath,
-      pluginName,
+      pluginPath: finalPath,
+      pluginName: finalName,
       version: release.tag_name,
     };
   } catch (error) {
@@ -438,24 +458,34 @@ export async function installFromZip(
       return stat.isDirectory();
     });
 
-    let finalPluginPath = pluginPath;
-    if (extractedDirs.length === 1) {
-      // Move contents up one level
-      const nestedPath = join(pluginPath, extractedDirs[0]);
-      const tempMovePath = join(pluginsDir, ".temp_move");
+    if (extractedItems.length === 1 && extractedDirs.length === 1) {
+      // Move contents up one level if everything is wrapped in a single root folder
+      const rootFolder = extractedDirs[0];
+      const tempMovePath = join(pluginsDir, ".temp_move_" + Date.now());
       
       fs.renameSync(pluginPath, tempMovePath);
-      fs.renameSync(tempMovePath, pluginPath);
-      finalPluginPath = join(pluginPath, extractedDirs[0]);
+      fs.renameSync(join(tempMovePath, rootFolder), pluginPath);
+      fs.rmSync(tempMovePath, { recursive: true, force: true });
     }
 
-    // Try to read package.json for version info
     let version: string | undefined;
-    const packageJsonPath = join(pluginPath, "package.json");
+    let finalName = name;
+    let finalPath = pluginPath;
+    
+    const packageJsonPath = join(finalPath, "package.json");
     if (fs.existsSync(packageJsonPath)) {
       try {
         const pkg = JSON.parse(fs.readFileSync(packageJsonPath, "utf-8"));
         version = pkg.version;
+        if (pkg.name && pkg.name !== name) {
+          const newPath = join(pluginsDir, pkg.name);
+          if (fs.existsSync(newPath)) {
+            fs.rmSync(newPath, { recursive: true, force: true });
+          }
+          fs.renameSync(finalPath, newPath);
+          finalPath = newPath;
+          finalName = pkg.name;
+        }
       } catch {
         // Ignore package.json parse errors
       }
@@ -463,8 +493,8 @@ export async function installFromZip(
 
     return {
       success: true,
-      pluginPath: finalPluginPath,
-      pluginName: name,
+      pluginPath: finalPath,
+      pluginName: finalName,
       version,
     };
   } catch (error) {

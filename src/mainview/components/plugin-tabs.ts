@@ -1,6 +1,9 @@
 import { LitElement, html, css } from "lit";
 import { customElement, property } from "lit/decorators.js";
 
+// Import theme system
+import { darkTheme, generateThemeCSS, baseStyles } from "../styles/index.js";
+
 /**
  * Tab data structure
  */
@@ -16,23 +19,22 @@ export interface TabData {
  */
 @customElement("plugin-tabs")
 export class PluginTabs extends LitElement {
-  static styles = css`
-    :host {
-      display: block;
-    }
-
+  static styles = [
+    css`:host {${generateThemeCSS(darkTheme)}}`,
+    baseStyles,
+    css`
     .tabs {
       display: flex;
       gap: 10px;
       margin-bottom: 20px;
-      border-bottom: 1px solid var(--border-color, #404040);
+      border-bottom: 1px solid var(--border-color);
       padding-bottom: 10px;
     }
 
     .tab {
       background: transparent;
       border: none;
-      color: var(--text-color, #e0e0e0);
+      color: var(--text-color);
       padding: 10px 20px;
       cursor: pointer;
       font-size: 14px;
@@ -44,11 +46,11 @@ export class PluginTabs extends LitElement {
     }
 
     .tab:hover {
-      background: var(--card-bg, #2d2d2d);
+      background: var(--hover-bg);
     }
 
     .tab.active {
-      background: var(--primary-color, #4a9eff);
+      background: var(--primary-color);
       color: white;
     }
 
@@ -62,7 +64,8 @@ export class PluginTabs extends LitElement {
     .tab:not(.active) .tab-count {
       background: rgba(255, 255, 255, 0.1);
     }
-  `;
+  `
+  ];
 
   @property({ type: String }) activeTab: string = "installed";
   @property({ type: Array }) tabs: TabData[] = [
