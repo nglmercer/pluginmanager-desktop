@@ -1,9 +1,7 @@
-import { BrowserView, BrowserWindow } from "electrobun/bun";
+import { BrowserView, BrowserWindow, Utils } from "electrobun/bun";
 import { BasePluginManager } from "../manager/baseplugin";
 import { PLATFORMS } from "../constants";
 import { pluginAPI } from "../manager/plugin-api";
-import { join } from "node:path";
-import * as fs from "node:fs";
 
 /**
  * Plugin information for IPC
@@ -75,8 +73,9 @@ export class IpcHandler {
     // Define RPC for handling requests from webview
     this.rpc = BrowserView.defineRPC({
       handlers: {
-        // Requests from webview to Bun
         requests: {
+          // ===== Plugin Management API =====
+
           // Get all loaded plugins
           getPlugins: (): PluginInfo[] => {
             if (!this.manager) return [];
@@ -134,53 +133,10 @@ export class IpcHandler {
             }));
           },
 
-          // Get window status
-          getWindowStatus: (): WindowStatus => {
-            return {
-              isOpen: this.window !== null,
-              isFocused: this.window !== null,
-            };
-          },
-
-          // ===== Plugin Installer API =====
-
-          // List installed plugins
-          listInstalledPlugins: () => {
-            return pluginAPI.listPlugins(this.manager!);
-          },
-
-          // Install plugin from GitHub
-          installFromGitHub: async (params: unknown) => {
-            const p = params as { repo: string; version?: string; assetName?: string };
-            return await pluginAPI.installFromGitHub({
-              repo: p.repo,
-              version: p.version,
-              assetName: p.assetName,
-            });
-          },
-
-          // Install plugin from zip
-          installFromZip: async (params: unknown) => {
-            const p = params as { zipPath: string; pluginName?: string };
-            return await pluginAPI.installFromZip(p.zipPath, p.pluginName);
-          },
-
           // Remove plugin
           removePlugin: (params: unknown) => {
             const p = params as { pluginName: string };
             return pluginAPI.removePlugin(p.pluginName);
-          },
-
-          // Get GitHub releases
-          getGitHubReleases: async (params: unknown) => {
-            const p = params as { repo: string };
-            return await pluginAPI.getGitHubReleases(p.repo);
-          },
-
-          // Get latest GitHub release
-          getLatestRelease: async (params: unknown) => {
-            const p = params as { repo: string };
-            return await pluginAPI.getLatestRelease(p.repo);
           },
 
           // Get plugins directory
@@ -188,56 +144,26 @@ export class IpcHandler {
             return pluginAPI.getPluginsDir();
           },
 
-          // ===== Plugin Management =====
-
-          // Search plugins by name
-          searchPlugins: (params: unknown) => {
-            const p = params as { query: string };
-            const plugins = pluginAPI.listPlugins(this.manager!);
-            if (!p.query) return plugins;
-            const query = p.query.toLowerCase();
-            return plugins.filter(
-              (plugin) =>
-                plugin.name?.toLowerCase().includes(query) ||
-                plugin.id?.toLowerCase().includes(query) ||
-                plugin.version?.toLowerCase().includes(query)
-            );
+          // Open plugins folder in file explorer
+          openPluginsFolder: async () => {
+             const pluginsDir = pluginAPI.getPluginsDir();
+             console.log(`[IPC] Opening plugins folder: ${pluginsDir}`);
+             try {
+               // In Electrobun, showItemInFolder opens the parent and highlights the item, 
+               // but if we pass a directory, it usually opens that directory.
+               return Utils.showItemInFolder(pluginsDir);
+             } catch (e) {
+               console.error("[IPC] Failed to open plugins folder:", e);
+               return false;
+             }
           },
 
-          // Check if plugin is installed
-          isPluginInstalled: (params: unknown) => {
-            const p = params as { pluginName: string };
-            return pluginAPI.isPluginInstalled(p.pluginName);
-          },
-
-          // Upload plugin from webview (receives base64 encoded zip)
-          uploadPlugin: async (params: unknown) => {
-            const p = params as { fileName: string; base64Data: string };
-            const tempDir = join(pluginAPI.getPluginsDir(), ".temp");
-            const tempPath = join(tempDir, p.fileName);
-            
-            // Ensure temp directory exists
-            if (!fs.existsSync(tempDir)) {
-              fs.mkdirSync(tempDir, { recursive: true });
-            }
-            
-            // Write file
-            const buffer = new Uint8Array(Buffer.from(p.base64Data, "base64"));
-            fs.writeFileSync(tempPath, buffer);
-            
-            // Install from the temp file - don't pass pluginName so installer can detect it
-            const result = await pluginAPI.installFromZip(tempPath);
-            
-            // Clean up temp file
-            try {
-              if (fs.existsSync(tempPath)) {
-                fs.unlinkSync(tempPath);
-              }
-            } catch (e) {
-              console.log("[IPC] Could not remove temp file:", e);
-            }
-            
-            return result;
+          // Get window status
+          getWindowStatus: (): WindowStatus => {
+            return {
+              isOpen: this.window !== null,
+              isFocused: this.window !== null,
+            };
           },
         },
         // Messages from webview to Bun

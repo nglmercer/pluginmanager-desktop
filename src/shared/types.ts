@@ -11,14 +11,9 @@ export type PluginManagerRPC = {
       getPluginStatus: { params: { pluginId: string }; response: PluginStatus };
       reloadPlugin: { params: { pluginId: string }; response: boolean };
       getRules: { params: {}; response: RuleInfo[] };
-      // Plugin Installer API
-      listInstalledPlugins: { params: {}; response: PluginInstallInfo[] };
-      installFromGitHub: { params: PluginInstallFromGitHubParams; response: PluginInstallResult };
-      installFromZip: { params: PluginInstallFromZipParams; response: PluginInstallResult };
       removePlugin: { params: { pluginName: string }; response: { success: boolean; error?: string } };
-      getGitHubReleases: { params: { repo: string }; response: GitHubReleaseInfo[] };
-      getLatestRelease: { params: { repo: string }; response: GitHubReleaseInfo };
       getPluginsDir: { params: {}; response: string };
+      openPluginsFolder: { params: {}; response: boolean };
     };
     messages: {
       pluginLoaded: { pluginId: string; name: string };
@@ -77,76 +72,8 @@ export interface WindowStatus {
   isFocused: boolean;
 }
 
-// ============================================================================
-// Plugin Installer Types
-// ============================================================================
-
-/**
- * Installed plugin information
- */
-export interface PluginInstallInfo {
-  name: string;
-  path: string;
-  hasPackageJson: boolean;
-  packageJson?: {
-    name: string;
-    version: string;
-    description?: string;
-  };
-}
-
-/**
- * Parameters for installing from GitHub
- */
-export interface PluginInstallFromGitHubParams {
-  repo: string;
-  version?: string;
-  assetName?: string;
-  headers?: Record<string, string>;
-}
-
-/**
- * Parameters for installing from zip
- */
-export interface PluginInstallFromZipParams {
-  zipPath: string;
-  pluginName?: string;
-}
-
-/**
- * Result of plugin installation
- */
-export interface PluginInstallResult {
+// Result types used by views
+export interface RemoveResult {
   success: boolean;
-  pluginPath?: string;
-  pluginName?: string;
-  version?: string;
   error?: string;
-}
-
-/**
- * GitHub release info (simplified for IPC)
- */
-export interface GitHubReleaseInfo {
-  id: number;
-  tag_name: string;
-  name: string;
-  body: string;
-  html_url: string;
-  published_at: string;
-  draft: boolean;
-  prerelease: boolean;
-  assets: GitHubAssetInfo[];
-}
-
-/**
- * GitHub asset info (simplified for IPC)
- */
-export interface GitHubAssetInfo {
-  id: number;
-  name: string;
-  label: string;
-  content_type: string;
-  size: number;
-  browser_download_url: string;
 }

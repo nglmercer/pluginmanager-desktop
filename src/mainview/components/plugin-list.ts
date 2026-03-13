@@ -94,13 +94,37 @@ export class PluginList extends LitElement {
     );
   }
 
+  private async handleOpenFolder(): Promise<void> {
+     // Import electroview to call RPC
+     const { electroview } = await import("../rpc.js");
+     await electroview.rpc!.request.openPluginsFolder({});
+  }
+
   render() {
     if (this.loading) {
       return html`<div class="loading">Loading plugins...</div>`;
     }
 
+    const header = html`
+      <div class="card" style="margin-bottom: 20px; border: 1px dashed var(--border-color); background: var(--hover-bg);">
+         <div style="display: flex; justify-content: space-between; align-items: center; gap: 15px;">
+            <div style="flex: 1;">
+               <h4 style="margin: 0 0 5px 0;">Manual Plugin Management</h4>
+               <p style="margin: 0; font-size: 0.9em; color: var(--text-muted);">
+                 Drag and Drop your plugin folders into the plugins directory. 
+                 The system will automatically detect and load them.
+               </p>
+            </div>
+            <button class="btn-primary" @click=${this.handleOpenFolder}>
+               Open Plugins Folder
+            </button>
+         </div>
+      </div>
+    `;
+
     if (this.plugins.length === 0) {
       return html`
+        ${header}
         <div class="empty-state">
           <svg
             viewBox="0 0 24 24"
@@ -113,12 +137,13 @@ export class PluginList extends LitElement {
             />
           </svg>
           <p>No plugins installed yet.</p>
-          <p>Use the tabs above to install plugins from GitHub or upload a zip file.</p>
+          <p>Click the button above to open the directory and add your plugins manually.</p>
         </div>
       `;
     }
 
     return html`
+      ${header}
       <div class="plugin-list">
         ${this.plugins.map(
           (plugin) => html`

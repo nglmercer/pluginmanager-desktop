@@ -1,22 +1,16 @@
 import { LitElement, html, css } from "lit";
 import { customElement, state, query } from "lit/decorators.js";
 import { electroview } from "./rpc.js";
-import type { GitHubRelease, GitHubAsset, PluginInfo, InstallResult, RemoveResult } from "./types.js";
+import type { PluginInfo, RemoveResult } from "./types.js";
 
 // Import modular components
-import { PluginTabs } from "./components/plugin-tabs.js";
 import { PluginList } from "./components/plugin-list.js";
-import { GitHubSearch } from "./components/github-search.js";
-import { PluginUpload } from "./components/plugin-upload.js";
 
 // Import theme system
 import { getThemeManager, baseStyles } from "./styles/index.js";
 
 // Register the child components
-import "./components/plugin-tabs.js";
 import "./components/plugin-list.js";
-import "./components/github-search.js";
-import "./components/plugin-upload.js";
 
 /**
  * Main Plugin Manager Component
@@ -75,31 +69,25 @@ export class PluginManager extends LitElement {
   `
   ];
 
-  @state() private activeTab: string = "installed";
   @state() private plugins: PluginInfo[] = [];
-  @state() private releases: GitHubRelease[] = [];
   @state() private loading: boolean = false;
   @state() private error: string = "";
   @state() private success: string = "";
-  @state() private githubRepo: string = "";
-  @state() private selectedRelease: GitHubRelease | null = null;
-  @state() private selectedAsset: GitHubAsset | null = null;
-  //@ts-expect-error
-  @query("plugin-tabs") private _tabsElement!: PluginTabs;
+
   //@ts-expect-error
   @query("plugin-list") private _listElement!: PluginList;
-  //@ts-expect-error
-  @query("github-search") private _searchElement!: GitHubSearch;
-  //@ts-expect-error
-  @query("plugin-upload") private _uploadElement!: PluginUpload;
 
   private themeManager = getThemeManager();
   private _themeUnsubscribe?: () => void;
+  private _pollInterval?: any;
 
   connectedCallback() {
     super.connectedCallback();
     this.loadPlugins();
     this._themeUnsubscribe = this.themeManager.subscribe(() => this.requestUpdate());
+    
+    // Poll for changes in plugins list as we now rely on manual management
+    this._pollInterval = setInterval(() => this.loadPlugins(), 2000);
   }
 
   disconnectedCallback() {
@@ -107,86 +95,22 @@ export class PluginManager extends LitElement {
     if (this._themeUnsubscribe) {
       this._themeUnsubscribe();
     }
+    if (this._pollInterval) {
+      clearInterval(this._pollInterval);
+    }
   }
 
   private async loadPlugins(): Promise<void> {
-    this.loading = true;
-    this.error = "";
     try {
-      let result = await electroview.rpc!.request.listInstalledPlugins({}) as PluginInfo[];
-      setInterval(async () => {
-        result = await electroview.rpc!.request.listInstalledPlugins({}) as PluginInfo[];
-        console.log("plugins", result);
-      }, 1000);
+      const result = await electroview.rpc!.request.getPlugins({}) as PluginInfo[];
       this.plugins = result || [];
     } catch (e: unknown) {
       this.error = `Failed to load plugins: ${(e as Error).message}`;
-    } finally {
-      this.loading = false;
-    }
-  }
-
-  private async loadReleases(): Promise<void> {
-    const repo = this.githubRepo.trim();
-    if (!repo) {
-      this.error = "Please enter a GitHub repository (owner/repo)";
-      return;
-    }
-
-    this.loading = true;
-    this.error = "";
-    this.releases = [];
-    this.selectedRelease = null;
-    this.selectedAsset = null;
-
-    try {
-      const result = await electroview.rpc!.request.getGitHubReleases({
-        repo,
-      }) as GitHubRelease[];
-      this.releases = result || [];
-    } catch (e: unknown) {
-      this.error = (e as Error).message || "Failed to load releases";
-    } finally {
-      this.loading = false;
-    }
-  }
-
-  private async installFromGitHub(
-    repo: string,
-    asset: GitHubAsset
-  ): Promise<void> {
-    if (!asset) {
-      this.error = "Please select an asset to install";
-      return;
-    }
-
-    this.loading = true;
-    this.error = "";
-    this.success = "";
-
-    try {
-      const result = await electroview.rpc!.request.installFromGitHub({
-        repo,
-        version: undefined,
-        assetName: asset.name,
-      }) as InstallResult;
-
-      if (result?.success) {
-        this.success = `Successfully installed ${result.pluginName}@${result.version}`;
-        this.activeTab = "installed";
-        await this.loadPlugins();
-      } else {
-        this.error = result?.error || "Installation failed";
-      }
-    } catch (e: unknown) {
-      this.error = (e as Error).message || "Installation failed";
-    } finally {
-      this.loading = false;
     }
   }
 
   private async removePlugin(pluginName: string): Promise<void> {
-    if (!confirm(`Are you sure you want to remove "${pluginName}"?`)) {
+    if (!confirm(`Are you sure you want to remove "${pluginName}"? This will delete the plugin folder permanently.`)) {
       return;
     }
 
@@ -212,29 +136,8 @@ export class PluginManager extends LitElement {
     }
   }
 
-  private handleTabChange(e: CustomEvent<{ tabId: string }>): void {
-    this.activeTab = e.detail.tabId;
-  }
-
   private handlePluginRemove(e: CustomEvent<{ pluginName: string }>): void {
     this.removePlugin(e.detail.pluginName);
-  }
-
-  private handleGitHubSearch(e: CustomEvent<{ repo: string }>): void {
-    this.githubRepo = e.detail.repo;
-    this.loadReleases();
-  }
-
-  private handleGitHubInstall(
-    e: CustomEvent<{ repo: string; asset: GitHubAsset }>
-  ): void {
-    this.installFromGitHub(e.detail.repo, e.detail.asset);
-  }
-
-  private handleUploadSuccess(e: CustomEvent<{ pluginName: string }>): void {
-    this.success = `Successfully installed ${e.detail.pluginName}`;
-    this.activeTab = "installed";
-    this.loadPlugins();
   }
 
   /**
@@ -272,56 +175,16 @@ export class PluginManager extends LitElement {
           </button>
         </h2>
 
-        <plugin-tabs
-          .activeTab=${this.activeTab}
-          .tabs=${
-            [
-              { id: "installed", label: "Installed Plugins", count: this.plugins.length },
-              { id: "github", label: "Install from GitHub" },
-              { id: "upload", label: "Upload ZIP" },
-            ]
-          }
-          @tab-change=${this.handleTabChange}
-        ></plugin-tabs>
-
         ${this.error ? html`<div class="message error">${this.error}</div>` : ""}
         ${this.success
           ? html`<div class="message success">${this.success}</div>`
           : ""}
 
-        ${this.activeTab === "installed"
-          ? html`
-              <plugin-list
-                .plugins=${this.plugins}
-                .loading=${this.loading}
-                @plugin-remove=${this.handlePluginRemove}
-              ></plugin-list>
-            `
-          : ""}
-
-        ${this.activeTab === "github"
-          ? html`
-              <github-search
-                .releases=${this.releases}
-                .selectedRelease=${this.selectedRelease}
-                .selectedAsset=${this.selectedAsset}
-                .loading=${this.loading}
-                .error=${this.error}
-                .success=${this.success}
-                @github-search=${this.handleGitHubSearch}
-                @github-install=${this.handleGitHubInstall}
-              ></github-search>
-            `
-          : ""}
-
-        ${this.activeTab === "upload"
-          ? html`
-              <plugin-upload
-                .loading=${this.loading}
-                @upload-success=${this.handleUploadSuccess}
-              ></plugin-upload>
-            `
-          : ""}
+        <plugin-list
+          .plugins=${this.plugins}
+          .loading=${this.loading}
+          @plugin-remove=${this.handlePluginRemove}
+        ></plugin-list>
       </div>
     `;
   }
