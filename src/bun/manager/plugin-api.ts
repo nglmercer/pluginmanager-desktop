@@ -14,7 +14,7 @@ import type { PluginInfo } from "../ipc";
 export interface PluginManagerAPI {
   // Management
   listPlugins: (manager: BasePluginManager) => PluginInfo[];
-  removePlugin: (pluginName: string) => Promise<{ success: boolean; error?: string }>;
+  removePlugin: (pluginName: string, manager?: BasePluginManager) => Promise<{ success: boolean; error?: string }>;
   isPluginInstalled: (pluginName: string) => boolean;
   
   // Paths
@@ -45,9 +45,9 @@ export const pluginAPI: PluginManagerAPI = {
   /**
    * Remove a plugin
    */
-  removePlugin: async (pluginName: string): Promise<{ success: boolean; error?: string }> => {
+  removePlugin: async (pluginName: string, manager?: BasePluginManager): Promise<{ success: boolean; error?: string }> => {
     console.log(`[PluginAPI] Removing plugin: ${pluginName}`);
-    const result = await removePlugin(pluginName);
+    const result = await removePlugin(pluginName, manager);
     
     if (result.success) {
       console.log(`[PluginAPI] Successfully removed ${pluginName}`);

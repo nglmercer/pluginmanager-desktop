@@ -156,10 +156,9 @@ export class IpcHandler {
             }));
           },
 
-          // Remove plugin
           removePlugin: (params: unknown) => {
             const p = params as { pluginName: string };
-            return this.handleAsync(pluginAPI.removePlugin(p.pluginName));
+            return this.handleAsync(pluginAPI.removePlugin(p.pluginName, this.manager || undefined));
           },
 
           // Get plugins directory
