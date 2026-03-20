@@ -107,6 +107,9 @@ export class CustomDialog extends LitElement {
     this.placeholder = options.placeholder || "";
     this.type = options.type;
 
+    // Ensure rendering is done before accessing shadow DOM elements
+    await this.updateComplete;
+
     return new Promise((resolve) => {
       this._resolve = resolve;
       this._dialog.showModal();

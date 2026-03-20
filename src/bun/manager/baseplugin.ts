@@ -70,10 +70,10 @@ export class BasePluginManager extends PluginManager {
     console.log(`[PluginManager] Toggling plugin ${pluginName}: ${enabled}`);
     if (enabled) {
       // For enabling, we attempt to reload it (or load if first time)
-      await this.reloadPlugin(pluginName);
+      await this.enablePlugin(pluginName);
     } else {
       // For disabling, we unregister it from the manager
-      this.unregister(pluginName);
+      await this.disablePlugin(pluginName);
     }
   }
 }

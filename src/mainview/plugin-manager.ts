@@ -9,7 +9,7 @@ import type { PluginInfo, RemoveResult } from "./types.js";
 import { SettingsModal } from "./components/settings-modal.js";
 
 // Import theme system
-import { getThemeManager, baseStyles } from "./styles/index.js";
+import { getThemeManager, baseStyles, APP_ICON, SETTINGS_ICON } from "./styles/index.js";
 
 // Register the child components
 import "./components/plugin-list.js";
@@ -84,7 +84,7 @@ export class PluginManager extends LitElement {
 
   private themeManager = getThemeManager();
   private _themeUnsubscribe?: () => void;
-  private _pollInterval?: any;
+  private _pollInterval?: ReturnType<typeof setInterval>;
 
   connectedCallback() {
     super.connectedCallback();
@@ -157,39 +157,14 @@ export class PluginManager extends LitElement {
     return html`
       <div class="plugin-manager">
         <h2>
-          <svg
-            width="24"
-            height="24"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2"
-          >
-            <path
-              d="M20 7h-9M14 17H5M17 17a3 3 0 1 0 0-6 3 3 0 0 0 0 6ZM7 7a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z"
-            />
-          </svg>
+          ${APP_ICON}
           ${t("app.title")}
           <button
             class="settings-btn"
             @click=${this.openSettings}
             title="${t("app.settings")}"
           >
-            <svg
-              width="20"
-              height="20"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-            >
-              <path
-                d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"
-              />
-              <circle cx="12" cy="12" r="3" />
-            </svg>
+            ${SETTINGS_ICON}
           </button>
         </h2>
 

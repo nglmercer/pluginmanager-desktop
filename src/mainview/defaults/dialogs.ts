@@ -6,14 +6,38 @@ let dialogInstance: CustomDialog | null = null;
  * Gets or creates the global dialog instance
  */
 function getDialogInstance(): CustomDialog {
-  if (!dialogInstance) {
-    dialogInstance = document.querySelector("custom-dialog");
-    if (!dialogInstance) {
-      dialogInstance = document.createElement("custom-dialog");
-      document.body.appendChild(dialogInstance);
+  if (dialogInstance && typeof (dialogInstance as any).show === 'function') {
+    return dialogInstance;
+  }
+
+  // Try to find if one already exists in the document
+  const existing = document.querySelector("custom-dialog") as any;
+  
+  if (existing && typeof existing.show === 'function') {
+    dialogInstance = existing;
+  } else {
+    // We create a new one using the class constructor
+    // This is the most reliable way to get an instance with the methods
+    try {
+      dialogInstance = new CustomDialog() as any;
+      if (existing) {
+        existing.replaceWith(dialogInstance!);
+      } else {
+        document.body.appendChild(dialogInstance!);
+      }
+    } catch (e) {
+      console.error('[Dialogs] Error creating CustomDialog:', e);
+      // Fallback
+      if (!existing) {
+          dialogInstance = document.createElement("custom-dialog") as any;
+          document.body.appendChild(dialogInstance!);
+      } else {
+          dialogInstance = existing;
+      }
     }
   }
-  return dialogInstance;
+
+  return dialogInstance!;
 }
 
 /**

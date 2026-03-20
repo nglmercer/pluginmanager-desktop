@@ -33,6 +33,8 @@ export class PluginInstallerService {
           pluginPath = `${pluginPath}.js`;
       } else if (fsSync.existsSync(`${pluginPath}.ts`)) {
           pluginPath = `${pluginPath}.ts`;
+          // when import plugin as index.js and this have pluginName 
+          manager?.loadPluginsFromDirectory
       } else {
           return { success: false, error: `Plugin ${pluginName} not found, path: ${pluginPath}` };
       }
