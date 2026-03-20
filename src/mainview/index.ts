@@ -1,3 +1,6 @@
+// Initialize custom dialogs
+import "./defaults/dialogs.js";
+
 // Initialize i18n
 import "./i18n.js";
 

@@ -12,23 +12,24 @@ export type PluginManagerRPC = {
       getPlugins: { params: {}; response: AsyncResponseWrapper<PluginInfo[]> };
       getPluginStatus: { params: { pluginId: string }; response: AsyncResponseWrapper<PluginStatus> };
       reloadPlugin: { params: { pluginId: string }; response: AsyncResponseWrapper<boolean> };
+      togglePlugin: { params: { pluginName: string; enabled: boolean }; response: AsyncResponseWrapper<boolean> };
       getRules: { params: {}; response: AsyncResponseWrapper<RuleInfo[]> };
       removePlugin: { params: { pluginName: string }; response: AsyncResponseWrapper<{ success: boolean; error?: string }> };
       getPluginsDir: { params: {}; response: AsyncResponseWrapper<string> };
       openPluginsFolder: { params: {}; response: AsyncResponseWrapper<boolean> };
-    };
-    messages: {};
-  }>;
-  webview: RPCSchema<{
-    requests: {
       openWindow: { params: {}; response: boolean };
       closeWindow: { params: {}; response: boolean };
       getWindowStatus: { params: {}; response: WindowStatus };
     };
+    messages: {};
+  }>;
+  webview: RPCSchema<{
+    requests: {};
     messages: {
       showNotification: { title: string; message: string };
       windowStateChanged: { state: "opened" | "closed" };
       asyncResponse: { id: string; data?: any; error?: string };
+      togglePlugin: { pluginName: string; enabled: boolean };
       pluginLoaded: { pluginId: string; name: string };
       pluginUnloaded: { pluginId: string };
       pluginError: { pluginId: string; error: string };

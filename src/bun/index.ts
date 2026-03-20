@@ -24,6 +24,7 @@ function openMainWindow(): void {
 	// If window exists, focus it
 	if (ipcHandler.isWindowOpen()) {
 		ipcHandler.focusWindow();
+		ipcHandler.showNotification("Window Refocused", "The main window is already open.");
 		return;
 	}
 

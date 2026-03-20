@@ -115,7 +115,7 @@ export class PluginManager extends LitElement {
   }
 
   private async removePlugin(pluginName: string): Promise<void> {
-    if (!confirm(i18next.t("messages.removeConfirm", { name: pluginName }))) {
+    if (!(await confirm(i18next.t("messages.removeConfirm", { name: pluginName })))) {
       return;
     }
 

@@ -5,6 +5,7 @@ import { actionRegistryPlugin, ActionRegistryPlugin } from "./Register";
 import { ensureDir, getBaseDir } from "../utils/filepath";
 import { PLUGIN_NAMES } from "../constants";
 import { helpers } from "./defaults/helpers";
+
 /**
  * Gestor de plugins personalizado para TTS
  * Extiende PluginManager para asegurar que el ActionRegistryPlugin esté siempre cargado
@@ -14,8 +15,9 @@ export class BasePluginManager extends PluginManager {
   public alreadyLoaded: boolean = false;
   public actionRegistryPlugin: ActionRegistryPlugin | null = null;
   public pluginsDir = join(getBaseDir(), "plugins");
+
   constructor() {
-    super(undefined,{
+    super(undefined, {
       pluginLoadTimeout: 30000
     });
     // Inicializar el motor de reglas
@@ -23,7 +25,6 @@ export class BasePluginManager extends PluginManager {
     
     // Registrar los plugins core automáticamente
     this.actionRegistryPlugin = actionRegistryPlugin;
-    //this.actionRegistryPlugin.register("helpers.last", helpers.last);
     Object.entries(helpers).forEach(([name, fn]) => {
       this.actionRegistryPlugin?.register(name, fn);
     });
@@ -58,5 +59,21 @@ export class BasePluginManager extends PluginManager {
     await ensureDir(this.pluginsDir);
     await this.loadPluginsFromDirectory(this.pluginsDir);
     return this.listPlugins();
+  }
+
+  /**
+   * Toggle a plugin (enable/disable)
+   * @param pluginName - Name of the plugin
+   * @param enabled - Whether to enable or disable
+   */
+  public async togglePlugin(pluginName: string, enabled: boolean): Promise<void> {
+    console.log(`[PluginManager] Toggling plugin ${pluginName}: ${enabled}`);
+    if (enabled) {
+      // For enabling, we attempt to reload it (or load if first time)
+      await this.reloadPlugin(pluginName);
+    } else {
+      // For disabling, we unregister it from the manager
+      this.unregister(pluginName);
+    }
   }
 }

@@ -3,42 +3,10 @@ import { BasePluginManager } from "../manager/baseplugin";
 import { PLATFORMS } from "../constants";
 import { pluginAPI } from "../manager/plugin-api";
 import { PLUGIN_NAMES } from "../constants";
-/**
- * Plugin information for IPC
- */
-export interface PluginInfo {
-  id: string;
-  name: string;
-  version: string;
-  enabled: boolean;
-}
+import type { PluginManagerRPC, PluginInfo, PluginStatus, RuleInfo, WindowStatus } from "../../shared/types";
 
-/**
- * Plugin status for IPC
- */
-export interface PluginStatus {
-  id: string;
-  loaded: boolean;
-  enabled: boolean;
-  error?: string;
-}
-
-/**
- * Rule information for IPC
- */
-export interface RuleInfo {
-  id: string;
-  platform: string;
-  enabled: boolean;
-}
-
-/**
- * Window status for IPC
- */
-export interface WindowStatus {
-  isOpen: boolean;
-  isFocused: boolean;
-}
+// This is the type of any RPC handler to help with complex typing
+type RPCRequests = PluginManagerRPC['bun']['requests'];
 
 /**
  * IPC Handler for Plugin Manager
@@ -47,7 +15,8 @@ export interface WindowStatus {
 export class IpcHandler {
   private window: BrowserWindow | null = null;
   private manager: BasePluginManager | null = null;
-  private rpc: ReturnType<typeof BrowserView.defineRPC> | null = null;
+  // Type this as the result of defineRPC, using the full schema
+  private rpc: ReturnType<typeof BrowserView.defineRPC<PluginManagerRPC>> | null = null;
 
   /**
    * Initialize IPC with plugin manager
@@ -68,11 +37,11 @@ export class IpcHandler {
   /**
    * Helper to handle async operations by returning an ID to the frontend
    */
-  private handleAsync(promise: Promise<any>): { type: 'async_id'; id: string } {
+  private handleAsync(promise: Promise<unknown>): { type: 'async_id'; id: string } {
     const id = Math.random().toString(36).substring(7);
     promise.then(data => {
       if (this.window?.webview?.rpc) {
-        // @ts-ignore
+        // @ts-ignore - electrobun's send method is dynamically typed via template strings
         this.window.webview.rpc.send.asyncResponse({ id, data });
       }
     }).catch(error => {
@@ -87,10 +56,14 @@ export class IpcHandler {
   /**
    * Setup RPC handlers (Bun side - handles requests FROM webview)
    */
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   private setupRpc(): void {
+    if (!this.manager) {
+        console.error("[IPC] Cannot setup RPC without a manager");
+        return;
+    }
+
     // Define RPC for handling requests from webview
-    this.rpc = BrowserView.defineRPC({
+    this.rpc = BrowserView.defineRPC<PluginManagerRPC>({
       handlers: {
         requests: {
           // ===== Plugin Management API =====
@@ -99,11 +72,10 @@ export class IpcHandler {
           getPlugins: (): PluginInfo[] => {
             if (!this.manager) return [];
             const plugins = this.manager.listPlugins();
-            // import const filter,for core plugin or default plugins
-            if (plugins.includes(PLUGIN_NAMES.ACTION_REGISTRY)) {
-              plugins.splice(plugins.indexOf(PLUGIN_NAMES.ACTION_REGISTRY), 1);
-            }
-            return plugins.map((id) => ({
+            // filter core plugin or default plugins
+            const filteredPlugins = plugins.filter(id => id !== PLUGIN_NAMES.ACTION_REGISTRY);
+            
+            return filteredPlugins.map((id) => ({
               id,
               name: id,
               version: "1.0.0",
@@ -112,8 +84,8 @@ export class IpcHandler {
           },
 
           // Get specific plugin status
-          getPluginStatus: (params: any): PluginStatus => {
-            const pluginId = params?.pluginId || "";
+          getPluginStatus: (params: RPCRequests['getPluginStatus']['params']): PluginStatus => {
+            const pluginId = params.pluginId;
             if (!this.manager) {
               return { id: pluginId, loaded: false, enabled: false, error: "No manager" };
             }
@@ -135,7 +107,7 @@ export class IpcHandler {
           },
 
           // Reload a plugin
-          reloadPlugin: (_params: any): boolean => {
+          reloadPlugin: (_params: RPCRequests['reloadPlugin']['params']): boolean => {
             if (!this.manager) return false;
             try {
               this.manager.enableHotReload(this.manager.pluginsDir);
@@ -144,21 +116,32 @@ export class IpcHandler {
               return false;
             }
           },
-
+          
+          // Toggle Plugin
+          togglePlugin: (params: RPCRequests['togglePlugin']['params']): boolean => {
+            if (!this.manager) return false;
+            try {
+              void this.manager.togglePlugin(params.pluginName, params.enabled);
+              return true;
+            } catch {
+              return false;
+            }
+          },
+          
           // Get all rules
           getRules: (): RuleInfo[] => {
             if (!this.manager) return [];
             const rules = this.manager.engine.getRules();
-            return rules.map((rule: any) => ({
+            // We assume RuleEngine rules match our RuleInfo partially
+            return rules.map((rule: { id: string, enabled?: boolean }) => ({
               id: rule.id,
               platform: "unknown",
               enabled: rule.enabled ?? true,
             }));
           },
 
-          removePlugin: (params: unknown) => {
-            const p = params as { pluginName: string };
-            return this.handleAsync(pluginAPI.removePlugin(p.pluginName, this.manager || undefined));
+          removePlugin: (params: RPCRequests['removePlugin']['params']) => {
+            return this.handleAsync(pluginAPI.removePlugin(params.pluginName, this.manager || undefined));
           },
 
           // Get plugins directory
@@ -172,8 +155,6 @@ export class IpcHandler {
                const pluginsDir = pluginAPI.getPluginsDir();
                console.log(`[IPC] Opening plugins folder: ${pluginsDir}`);
                try {
-                 // In Electrobun, showItemInFolder opens the parent and highlights the item, 
-                 // but if we pass a directory, it usually opens that directory.
                  return Utils.showItemInFolder(pluginsDir);
                } catch (e) {
                  console.error("[IPC] Failed to open plugins folder:", e);
@@ -189,10 +170,25 @@ export class IpcHandler {
               isFocused: this.window !== null,
             };
           },
+
+          openWindow: (): boolean => {
+             // Implementation of opening window via RPC
+             if (this.isWindowOpen()) {
+               this.focusWindow();
+               return true;
+             }
+             this.openWindow("views://mainview/index.html");
+             return true;
+          },
+
+          closeWindow: (): boolean => {
+             this.closeWindow();
+             return true;
+          },
         },
         // Messages from webview to Bun
         messages: {
-          "*": (messageName: string, payload: any) => {
+          "*": (messageName: string, payload: unknown) => {
             console.log(`[IPC] Message from webview: ${messageName}`, payload);
           },
         },
@@ -208,7 +204,7 @@ export class IpcHandler {
 
     // Listen for all platform events
     Object.values(PLATFORMS).forEach((platform) => {
-      this.manager!.on(platform, async (event) => {
+      this.manager!.on(platform, async (event: { eventName: string, data: unknown }) => {
         // Send event to webview if connected
         this.broadcastToWebview("eventReceived", {
           platform,
@@ -222,7 +218,7 @@ export class IpcHandler {
   /**
    * Broadcast message to webview
    */
-  broadcastToWebview(eventName: string, data: any): void {
+  broadcastToWebview(eventName: string, data: unknown): void {
     if (this.window?.webview) {
       try {
         // Execute JS in webview to dispatch event
@@ -249,6 +245,18 @@ export class IpcHandler {
    */
   notifyPluginError(pluginId: string, error: string): void {
     this.broadcastToWebview("pluginError", { pluginId, error });
+  }
+
+  /**
+   * Show a notification/alert in the webview
+   */
+  showNotification(title: string, message: string): void {
+    if (this.window?.webview?.rpc) {
+      // @ts-ignore
+      this.window.webview.rpc.send.showNotification({ title, message });
+    } else {
+      console.log(`[IPC] Notification (no window): ${title} - ${message}`);
+    }
   }
 
   /**
