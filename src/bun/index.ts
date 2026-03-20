@@ -58,7 +58,6 @@ tray.setMenu(
 	MenuBuilder.create()
 		.addItem("Open Window", "open")
 		.addItem("Electrobun Docs", "docs")
-		.addItem("Colab", "colab")
 		.addItem("Electrobun Github", "github")
 		.addDivider()
 		.addItem("Close Window", "close")

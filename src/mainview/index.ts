@@ -1,3 +1,6 @@
+// Initialize i18n
+import "./i18n.js";
+
 // Initialize theme manager
 import { getThemeManager } from "./styles/index.js";
 getThemeManager().applyToDocument();
@@ -6,9 +9,6 @@ getThemeManager().applyToDocument();
 export { PluginManager } from "./plugin-manager.js";
 export type {
   PluginInfo,
-  GitHubAsset,
-  GitHubRelease,
-  InstallResult,
   RemoveResult,
 } from "./types.js";
 

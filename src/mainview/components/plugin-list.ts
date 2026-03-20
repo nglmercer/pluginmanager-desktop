@@ -1,5 +1,6 @@
 import { LitElement, html, css } from "lit";
 import { customElement, property } from "lit/decorators.js";
+import { translate as t } from "lit-i18n";
 import type { PluginInfo } from "../types.js";
 
 // Import theme system
@@ -102,21 +103,20 @@ export class PluginList extends LitElement {
 
   render() {
     if (this.loading) {
-      return html`<div class="loading">Loading plugins...</div>`;
+      return html`<div class="loading">${t("app.loading")}</div>`;
     }
 
     const header = html`
       <div class="card" style="margin-bottom: 20px; border: 1px dashed var(--border-color); background: var(--hover-bg);">
          <div style="display: flex; justify-content: space-between; align-items: center; gap: 15px;">
             <div style="flex: 1;">
-               <h4 style="margin: 0 0 5px 0;">Manual Plugin Management</h4>
+               <h4 style="margin: 0 0 5px 0;">${t("app.manualManagement")}</h4>
                <p style="margin: 0; font-size: 0.9em; color: var(--text-muted);">
-                 Drag and Drop your plugin folders into the plugins directory. 
-                 The system will automatically detect and load them.
+                 ${t("app.dragDropNotice")}
                </p>
             </div>
             <button class="btn-primary" @click=${this.handleOpenFolder}>
-               Open Plugins Folder
+               ${t("app.openFolder")}
             </button>
          </div>
       </div>
@@ -136,8 +136,8 @@ export class PluginList extends LitElement {
               d="M20 7h-9M14 17H5M17 17a3 3 0 1 0 0-6 3 3 0 0 0 0 6ZM7 7a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z"
             />
           </svg>
-          <p>No plugins installed yet.</p>
-          <p>Click the button above to open the directory and add your plugins manually.</p>
+          <p>${t("app.noPlugins")}</p>
+          <p>${t("app.clickToAdd")}</p>
         </div>
       `;
     }
@@ -168,7 +168,7 @@ export class PluginList extends LitElement {
                   class="btn-danger"
                   @click=${() => this.handleRemove((plugin as any).id || plugin.name)}
                 >
-                  Uninstall
+                  ${t("app.uninstall")}
                 </button>
               </div>
             </div>

@@ -11,7 +11,9 @@
 	"dependencies": {
 		"bun_plugins": "^1.2.6",
 		"electrobun": "1.15.1",
+		"i18next": "^25.8.20",
 		"lit": "^3.3.2",
+		"lit-i18n": "^4.1.0",
 		"string-dac": "^1.0.0",
 		"trigger_system": "^1.2.1"
 	}

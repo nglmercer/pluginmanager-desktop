@@ -1,16 +1,19 @@
 import { LitElement, html, css } from "lit";
 import { customElement, state, query } from "lit/decorators.js";
+import { translate as t } from "lit-i18n";
+import { i18next } from "./i18n.js";
 import { invokeRpc } from "./rpc.js";
 import type { PluginInfo, RemoveResult } from "./types.js";
 
 // Import modular components
-import { PluginList } from "./components/plugin-list.js";
+import { SettingsModal } from "./components/settings-modal.js";
 
 // Import theme system
 import { getThemeManager, baseStyles } from "./styles/index.js";
 
 // Register the child components
 import "./components/plugin-list.js";
+import "./components/settings-modal.js";
 
 /**
  * Main Plugin Manager Component
@@ -52,18 +55,21 @@ export class PluginManager extends LitElement {
       background: var(--success-muted);
     }
 
-    .theme-toggle {
+    .settings-btn {
       margin-left: auto;
       background: transparent;
       border: 1px solid var(--border-color);
-      padding: 6px 10px;
-      font-size: 16px;
+      padding: 8px;
       cursor: pointer;
-      border-radius: 4px;
+      border-radius: 6px;
       transition: background 0.2s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--text-color);
     }
 
-    .theme-toggle:hover {
+    .settings-btn:hover {
       background: var(--hover-bg);
     }
   `
@@ -74,8 +80,7 @@ export class PluginManager extends LitElement {
   @state() private error: string = "";
   @state() private success: string = "";
 
-  //@ts-expect-error
-  @query("plugin-list") private _listElement!: PluginList;
+  @query("settings-modal") private _settingsModal!: SettingsModal;
 
   private themeManager = getThemeManager();
   private _themeUnsubscribe?: () => void;
@@ -105,12 +110,12 @@ export class PluginManager extends LitElement {
       const result = await invokeRpc("getPlugins", {}) as PluginInfo[];
       this.plugins = result || [];
     } catch (e: unknown) {
-      this.error = `Failed to load plugins: ${(e as Error).message}`;
+      this.error = i18next.t("messages.loadFailed", { error: (e as Error).message });
     }
   }
 
   private async removePlugin(pluginName: string): Promise<void> {
-    if (!confirm(`Are you sure you want to remove "${pluginName}"? This will delete the plugin folder permanently.`)) {
+    if (!confirm(i18next.t("messages.removeConfirm", { name: pluginName }))) {
       return;
     }
 
@@ -124,13 +129,13 @@ export class PluginManager extends LitElement {
       }) as RemoveResult;
 
       if (result?.success) {
-        this.success = `Successfully removed ${pluginName}`;
+        this.success = i18next.t("messages.removeSuccess", { name: pluginName });
         await this.loadPlugins();
       } else {
-        this.error = result?.error || "Removal failed";
+        this.error = i18next.t("messages.removeFailed", { error: result?.error || "Removal failed" });
       }
     } catch (e: unknown) {
-      this.error = (e as Error).message || "Removal failed";
+      this.error = i18next.t("messages.removeFailed", { error: (e as Error).message || "Removal failed" });
     } finally {
       this.loading = false;
     }
@@ -140,11 +145,12 @@ export class PluginManager extends LitElement {
     this.removePlugin(e.detail.pluginName);
   }
 
-  /**
-   * Toggle between light and dark themes
-   */
-  private toggleTheme(): void {
-    this.themeManager.toggleTheme();
+  private openSettings(): void {
+    this._settingsModal.open();
+  }
+
+  private handleSettingsChanged(): void {
+    this.requestUpdate();
   }
 
   render() {
@@ -163,15 +169,27 @@ export class PluginManager extends LitElement {
               d="M20 7h-9M14 17H5M17 17a3 3 0 1 0 0-6 3 3 0 0 0 0 6ZM7 7a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z"
             />
           </svg>
-          Plugin Manager
+          ${t("app.title")}
           <button
-            class="theme-toggle"
-            @click=${this.toggleTheme}
-            title="Toggle theme"
+            class="settings-btn"
+            @click=${this.openSettings}
+            title="${t("app.settings")}"
           >
-            ${this.themeManager.getMode() === "dark"
-              ? html`☀️`
-              : html`🌙`}
+            <svg
+              width="20"
+              height="20"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <path
+                d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"
+              />
+              <circle cx="12" cy="12" r="3" />
+            </svg>
           </button>
         </h2>
 
@@ -185,6 +203,8 @@ export class PluginManager extends LitElement {
           .loading=${this.loading}
           @plugin-remove=${this.handlePluginRemove}
         ></plugin-list>
+
+        <settings-modal @settings-changed=${this.handleSettingsChanged}></settings-modal>
       </div>
     `;
   }
