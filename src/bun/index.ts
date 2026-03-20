@@ -1,4 +1,5 @@
 import { Tray, Utils } from "electrobun/bun";
+import Electrobun from "electrobun/bun";
 import { TrayClickedEvent } from "./index.d";
 import { main } from "./pluginmanager";
 import { ontrayevent, MenuBuilder } from "./constants/tray";
@@ -50,10 +51,22 @@ main().then((result) => {
 	
 	// Initialize IPC with plugin manager
 	ipcHandler.initialize(result.manager);
-	
+	const cleanup = async () => {
+		const allplugins = result.manager.listPlugins();
+		console.log('[cleanup]',allplugins)
+		allplugins.forEach((plugin) => {
+			result.manager.disablePlugin(plugin)
+			result.manager.unregister(plugin)
+		});
+	}
+	process.on('exit', cleanup);
+	process.on('SIGINT', cleanup);
 	console.log("IPC Handler initialized");
+	Electrobun.events.on("before-quit", async (e) => {
+		console.log(e)
+		await cleanup();
+	});
 });
-
 // Set up tray menu using MenuBuilder
 tray.setMenu(
 	MenuBuilder.create()

@@ -9,7 +9,7 @@
 		"build:canary": "electrobun build --env=canary"
 	},
 	"dependencies": {
-		"bun_plugins": "^1.2.6",
+		"bun_plugins": "^1.2.7",
 		"electrobun": "1.15.1",
 		"i18next": "^25.8.20",
 		"lit": "^3.3.2",

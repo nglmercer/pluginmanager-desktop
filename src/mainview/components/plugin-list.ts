@@ -166,7 +166,7 @@ export class PluginList extends LitElement {
               <div class="plugin-actions">
                 <button
                   class="btn-danger"
-                  @click=${() => this.handleRemove((plugin as any).id || plugin.name)}
+                  @click=${() => this.handleRemove((plugin).id || plugin.name)}
                 >
                   ${t("app.uninstall")}
                 </button>

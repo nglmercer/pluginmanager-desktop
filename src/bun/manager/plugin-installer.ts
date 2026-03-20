@@ -10,47 +10,45 @@ import * as fsSync from "node:fs";
 import { getBaseDir } from "../utils/filepath";
 import { PATHS } from "../constants";
 import { BasePluginManager } from "./baseplugin";
-
+import { JsonPluginStorage } from "bun_plugins";
 export class PluginInstallerService {
   public static getPluginsDir(): string {
     return join(getBaseDir(), PATHS.PLUGINS_DIR);
   }
 
   public static async removePlugin(pluginName: string, manager?: BasePluginManager): Promise<{ success: boolean; error?: string }> {
-    let pluginPath = join(this.getPluginsDir(), pluginName);
-    const PluginInfo = manager?.getPluginStatus();
-    if (!PluginInfo![pluginName]) {
-      return { success: false, error: `Plugin ${pluginName} not found, path: ${pluginPath}` };
-    }
-    // temp debug
-    //const plugin = await manager!.getPlugin(pluginName);
-    //console.log({plugin},PluginInfo);
-    // manager not has method to get path plugin
-    manager?.unregister(pluginName);    
-    if (!fsSync.existsSync(pluginPath)) {
-      // Try appending .js or .ts just in case it wasn't tracked
-      if (fsSync.existsSync(`${pluginPath}.js`)) {
-          pluginPath = `${pluginPath}.js`;
-      } else if (fsSync.existsSync(`${pluginPath}.ts`)) {
-          pluginPath = `${pluginPath}.ts`;
-          // when import plugin as index.js and this have pluginName 
-          manager?.loadPluginsFromDirectory
-      } else {
-          return { success: false, error: `Plugin ${pluginName} not found, path: ${pluginPath}` };
-      }
-    }
-    
+    const pathplugin = manager?.getPluginPath(pluginName);
     try {
-      await fs.rm(pluginPath, { recursive: true, force: true });
+      if (!pathplugin) {
+        return { success: false, error: `Plugin ${pluginName} not found` };
+      }
+      manager?.unregister(pluginName);
+      console.log('[uninstall] uninstalled plugin', pluginName);
+      await fs.unlink(pathplugin);
       return { success: true };
     } catch (error) {
-      console.error(`[PluginInstaller] Failed to remove plugin: ${pluginName}`, error);
+      console.error(`[uninstall] Failed to remove plugin ${pluginName}: ${pathplugin}`, error);
       return { success: false, error: String(error) };
     }
   }
 
   public static isPluginInstalled(pluginName: string): boolean {
     return fsSync.existsSync(join(this.getPluginsDir(), pluginName));
+  }
+  public static getConfig(pluginName: string, key: string):unknown | boolean{
+    const storage = JsonPluginStorage.getInstanceByName(pluginName);
+    if(!storage){
+      return false;
+    }
+    return storage.get(key);
+  }
+  public static setConfig(pluginName: string, key: string, value: unknown):unknown | boolean{
+    const storage = JsonPluginStorage.getInstanceByName(pluginName);
+    if(!storage){
+      return false;
+    }
+    storage.set(key, value);
+    return storage.get(key);
   }
 }
 
