@@ -80,7 +80,7 @@ export class PluginManager extends LitElement {
 
   render() {
     return html`
-      <div class="p-5">
+      <div class="p-5 pt-0">
         ${this.error ? html`<div class="p-[10px] rounded-md mb-[15px] text-danger bg-danger-muted">${this.error}</div>` : ""}
         ${this.success
           ? html`<div class="p-[10px] rounded-md mb-[15px] text-success bg-success-muted">${this.success}</div>`

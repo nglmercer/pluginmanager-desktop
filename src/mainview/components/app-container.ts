@@ -10,7 +10,7 @@ import type { SettingsModal } from "./settings-modal.js";
 import "./settings-modal.js";
 
 // Import icons
-import { APP_ICON, SETTINGS_ICON, FOLDER_ICON } from "../styles/index.js";
+import { APP_ICON, SETTINGS_ICON } from "../styles/index.js";
 
 /**
  * Main App Container
@@ -32,16 +32,6 @@ export class AppContainer extends LitElement {
 
   private openSettings(): void {
     this._settingsModal.open();
-  }
-
-  private async handleOpenPluginsFolder(): Promise<void> {
-    const { invokeRpc } = await import("../defaults/rpc.js");
-    await invokeRpc("openPluginsFolder", {});
-  }
-
-  private async handleOpenRulesFolder(): Promise<void> {
-    const { invokeRpc } = await import("../defaults/rpc.js");
-    await invokeRpc("openRulesFolder", {});
   }
 
   render() {
@@ -69,17 +59,9 @@ export class AppContainer extends LitElement {
           >
             ${t("tab.rules")}
           </button>
-        </div>
 
-        <div class="flex gap-[10px] mb-5">
-          <button class="btn" @click=${this.handleOpenPluginsFolder}>
-            ${FOLDER_ICON} ${t("app.openPluginsFolder")}
-          </button>
-          <button class="btn" @click=${this.handleOpenRulesFolder}>
-            ${FOLDER_ICON} ${t("app.openRulesFolder")}
-          </button>
           <button
-            class="ml-auto bg-transparent border border-border p-2 cursor-pointer rounded-md transition-colors flex items-center justify-center text-primary hover:bg-hover"
+            class="ml-auto bg-transparent border-none p-2 cursor-pointer rounded-full transition-colors flex items-center justify-center text-muted hover:bg-hover hover:text-primary"
             @click=${this.openSettings}
             title="${t("app.settings")}"
           >

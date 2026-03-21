@@ -2,7 +2,8 @@ import { LitElement, html } from "lit";
 import { customElement, query } from "lit/decorators.js";
 import { translate as t } from "lit-i18n";
 import { i18next } from "../defaults/i18n.js";
-import { getThemeManager, CLOSE_ICON, CHEVRON_DOWN_ICON } from "../styles/index.js";
+import { invokeRpc } from "../defaults/rpc.js";
+import { getThemeManager, CLOSE_ICON, CHEVRON_DOWN_ICON, FOLDER_ICON } from "../styles/index.js";
 
 /**
  * Settings Modal Component
@@ -54,6 +55,14 @@ export class SettingsModal extends LitElement {
     i18next.changeLanguage(target.value);
     this.requestUpdate();
     this.dispatchEvent(new CustomEvent("settings-changed", { bubbles: true, composed: true }));
+  }
+
+  private async openPluginsFolder() {
+    await invokeRpc("openPluginsFolder", {});
+  }
+
+  private async openRulesFolder() {
+    await invokeRpc("openRulesFolder", {});
   }
 
   render() {
@@ -109,6 +118,26 @@ export class SettingsModal extends LitElement {
                 <div class="absolute right-5 top-1/2 -translate-y-1/2 pointer-events-none text-muted group-hover:text-primary transition-colors">
                    ${CHEVRON_DOWN_ICON}
                  </div>
+            </div>
+          </div>
+
+          <div class="mb-6">
+            <label class="block text-sm font-bold text-muted uppercase tracking-wider mb-4 px-1">${t("app.directories") || "Directories"}</label>
+            <div class="flex flex-col gap-3">
+              <button 
+                class="flex items-center gap-3 px-5 py-3 rounded-xl bg-input border border-border text-primary font-medium transition-all duration-200 hover:border-primary/50 hover:bg-white/5 active:scale-[0.98]"
+                @click=${this.openPluginsFolder}
+              >
+                ${FOLDER_ICON}
+                <span>${t("app.openPluginsFolder")}</span>
+              </button>
+              <button 
+                class="flex items-center gap-3 px-5 py-3 rounded-xl bg-input border border-border text-primary font-medium transition-all duration-200 hover:border-primary/50 hover:bg-white/5 active:scale-[0.98]"
+                @click=${this.openRulesFolder}
+              >
+                ${FOLDER_ICON}
+                <span>${t("app.openRulesFolder")}</span>
+              </button>
             </div>
           </div>
           
