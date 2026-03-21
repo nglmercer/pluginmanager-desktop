@@ -1,5 +1,4 @@
 import { css, CSSResult, unsafeCSS } from "lit";
-export { tailwindStyles } from "./tailwind.css.js";
 import type { ThemeColors } from "./types.js";
 
 /**

@@ -9,7 +9,7 @@ import type { PluginInfo, RemoveResult } from "./types.js";
 import { SettingsModal } from "./components/settings-modal.js";
 
 // Import theme system
-import { getThemeManager, baseStyles, tailwindStyles, APP_ICON, SETTINGS_ICON } from "./styles/index.js";
+import { getThemeManager, APP_ICON, SETTINGS_ICON } from "./styles/index.js";
 
 // Register the child components
 import "./components/plugin-list.js";
@@ -21,10 +21,9 @@ import "./components/settings-modal.js";
  */
 @customElement("plugin-manager")
 export class PluginManager extends LitElement {
-  static styles = [
-    tailwindStyles,
-    baseStyles,
-  ];
+  protected createRenderRoot() {
+    return this;
+  }
 
   @state() private plugins: PluginInfo[] = [];
   @state() private loading: boolean = false;

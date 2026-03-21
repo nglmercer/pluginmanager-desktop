@@ -1,8 +1,8 @@
-import { LitElement, html, css } from "lit";
+import { LitElement, html } from "lit";
 import { customElement, query } from "lit/decorators.js";
 import { translate as t } from "lit-i18n";
 import { i18next } from "../i18n.js";
-import { getThemeManager, baseStyles, tailwindStyles } from "../styles/index.js";
+import { getThemeManager, CLOSE_ICON, CHEVRON_DOWN_ICON } from "../styles/index.js";
 
 /**
  * Settings Modal Component
@@ -10,42 +10,9 @@ import { getThemeManager, baseStyles, tailwindStyles } from "../styles/index.js"
  */
 @customElement("settings-modal")
 export class SettingsModal extends LitElement {
-  static styles = [
-    tailwindStyles,
-    baseStyles,
-    css`
-      dialog::backdrop {
-        background: var(--overlay-bg);
-        backdrop-filter: blur(8px);
-        animation: backdrop-fade-in 0.3s ease-out;
-      }
-
-      @keyframes backdrop-fade-in {
-        from { opacity: 0; }
-        to { opacity: 1; }
-      }
-
-      dialog[open] {
-        animation: dialog-slide-up 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
-      }
-
-      @keyframes dialog-slide-up {
-        from {
-          opacity: 0;
-          transform: translateY(20px) scale(0.95);
-        }
-        to {
-          opacity: 1;
-          transform: translateY(0) scale(1);
-        }
-      }
-      
-      select:focus {
-        outline: none;
-        box-shadow: 0 0 0 2px var(--primary-color);
-      }
-    `,
-  ];
+  protected createRenderRoot() {
+    return this;
+  }
 
   @query("dialog") private _dialog!: HTMLDialogElement;
 
@@ -103,9 +70,7 @@ export class SettingsModal extends LitElement {
             class="text-muted hover:text-primary transition-colors p-2 rounded-full hover:bg-white/5" 
             @click=${this.close}
           >
-             <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-               <path d="M18 6L6 18M6 6l12 12"></path>
-             </svg>
+            ${CLOSE_ICON}
           </button>
         </div>
         
@@ -142,10 +107,8 @@ export class SettingsModal extends LitElement {
                   <option value="es">Español (ES)</option>
                 </select>
                 <div class="absolute right-5 top-1/2 -translate-y-1/2 pointer-events-none text-muted group-hover:text-primary transition-colors">
-                   <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-                     <path d="M6 9l6 6 6-6"></path>
-                   </svg>
-                </div>
+                   ${CHEVRON_DOWN_ICON}
+                 </div>
             </div>
           </div>
           

@@ -1,10 +1,10 @@
-import { LitElement, html, css } from "lit";
+import { LitElement, html } from "lit";
 import { customElement, property } from "lit/decorators.js";
 import { translate as t } from "lit-i18n";
 import type { PluginInfo } from "../types.js";
 
 // Import theme system
-import { baseStyles, tailwindStyles, FOLDER_ICON, TRASH_ICON } from "../styles/index.js";
+import { FOLDER_ICON, TRASH_ICON, NO_PLUGINS_ICON } from "../styles/index.js";
 
 /**
  * Plugin List Component
@@ -12,28 +12,9 @@ import { baseStyles, tailwindStyles, FOLDER_ICON, TRASH_ICON } from "../styles/i
  */
 @customElement("plugin-list")
 export class PluginList extends LitElement {
-  static styles = [
-    tailwindStyles,
-    baseStyles,
-    css`
-    /* Custom styles for elements that are harder to target with utility classes or for complex animations */
-    .slider:before {
-      position: absolute;
-      content: "";
-      height: 14px;
-      width: 14px;
-      left: 3px;
-      bottom: 3px;
-      background-color: white;
-      transition: .4s;
-      border-radius: 50%;
-    }
-
-    input:checked + .slider:before {
-      transform: translateX(20px);
-    }
-  `
-  ];
+  protected createRenderRoot() {
+    return this;
+  }
 
   @property({ type: Array }) plugins: PluginInfo[] = [];
   @property({ type: Boolean }) loading: boolean = false;
@@ -93,10 +74,10 @@ export class PluginList extends LitElement {
                </p>
             </div>
             <div class="flex gap-[10px]">
-               <button class="btn-primary" @click=${this.handleOpenFolder}>
+               <button class="btn" @click=${this.handleOpenFolder}>
                   ${t("app.openFolder")}
                </button>
-               <button class="btn-primary" @click=${this.handleOpenRulesFolder}>
+               <button class="btn" @click=${this.handleOpenRulesFolder}>
                   ${t("app.openRules")}
                </button>
             </div>
@@ -108,17 +89,7 @@ export class PluginList extends LitElement {
       return html`
         ${header}
         <div class="text-center text-muted py-10 px-5">
-          <svg
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2"
-            class="w-12 h-12 mb-[15px] opacity-50 mx-auto"
-          >
-            <path
-              d="M20 7h-9M14 17H5M17 17a3 3 0 1 0 0-6 3 3 0 0 0 0 6ZM7 7a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z"
-            />
-          </svg>
+          ${NO_PLUGINS_ICON}
           <p class="m-[5px_0]">${t("app.noPlugins")}</p>
           <p class="m-[5px_0]">${t("app.clickToAdd")}</p>
         </div>

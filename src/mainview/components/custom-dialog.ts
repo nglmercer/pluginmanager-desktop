@@ -1,6 +1,5 @@
-import { LitElement, html, css } from "lit";
+import { LitElement, html } from "lit";
 import { customElement, state, query } from "lit/decorators.js";
-import { baseStyles, tailwindStyles } from "../styles/index.js";
 
 /**
  * Custom Dialog Component
@@ -8,43 +7,9 @@ import { baseStyles, tailwindStyles } from "../styles/index.js";
  */
 @customElement("custom-dialog")
 export class CustomDialog extends LitElement {
-  static styles = [
-    tailwindStyles,
-    baseStyles,
-    css`
-      dialog::backdrop {
-        background: var(--overlay-bg);
-        backdrop-filter: blur(8px);
-        animation: backdrop-fade-in 0.3s ease-out;
-      }
-
-      @keyframes backdrop-fade-in {
-        from { opacity: 0; }
-        to { opacity: 1; }
-      }
-
-      dialog[open] {
-        animation: dialog-slide-up 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
-      }
-
-      @keyframes dialog-slide-up {
-        from {
-          opacity: 0;
-          transform: translateY(20px) scale(0.95);
-        }
-        to {
-          opacity: 1;
-          transform: translateY(0) scale(1);
-        }
-      }
-
-      /* Custom input focus ring since global styles might be limited */
-      input:focus {
-        outline: none;
-        box-shadow: 0 0 0 2px var(--primary-color);
-      }
-    `,
-  ];
+  protected createRenderRoot() {
+    return this;
+  }
 
   @state() private dialogTitle: string = "";
   @state() private message: string = "";
