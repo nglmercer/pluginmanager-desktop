@@ -13,9 +13,9 @@ export type PluginManagerRPC = {
       getPlugins: { params: {}; response: AsyncResponseWrapper<PluginInfo[]> };
       getPluginStatus: { params: { pluginId: string }; response: AsyncResponseWrapper<PluginStatus> };
       reloadPlugin: { params: { pluginId: string }; response: AsyncResponseWrapper<boolean> };
-      togglePlugin: { params: { pluginName: string; enabled: boolean }; response: AsyncResponseWrapper<boolean> };
+      togglePlugin: { params: { pluginName: string; enabled: boolean }; response: AsyncResponseWrapper<ActionResult> };
       getRules: { params: {}; response: AsyncResponseWrapper<RuleInfo[]> };
-      removePlugin: { params: { pluginName: string }; response: AsyncResponseWrapper<{ success: boolean; error?: string }> };
+      removePlugin: { params: { pluginName: string }; response: AsyncResponseWrapper<ActionResult> };
       getPluginsDir: { params: {}; response: AsyncResponseWrapper<string> };
       openPluginsFolder: { params: {}; response: AsyncResponseWrapper<boolean> };
       openWindow: { params: {}; response: boolean };
@@ -31,8 +31,8 @@ export type PluginManagerRPC = {
       deleteRule: { params: { filePath: string }; response: AsyncResponseWrapper<boolean> };
       ruleExists: { params: { filePath: string }; response: AsyncResponseWrapper<boolean> };
       ensureRulesDir: { params: { dirPath: string }; response: AsyncResponseWrapper<void> };
-      toggleRule: { params: { ruleId: string; enabled: boolean }; response: AsyncResponseWrapper<boolean> };
-      deleteRuleById: { params: { ruleId: string }; response: AsyncResponseWrapper<boolean> };
+      toggleRule: { params: { ruleId: string; enabled: boolean }; response: AsyncResponseWrapper<ActionResult> };
+      deleteRuleById: { params: { ruleId: string }; response: AsyncResponseWrapper<ActionResult> };
       updateEngineRules: { params: { rules: TriggerRule[] }; response: AsyncResponseWrapper<boolean> };
     };
     messages: {};
@@ -96,7 +96,7 @@ export interface WindowStatus {
 }
 
 // Result types used by views
-export interface RemoveResult {
+export interface ActionResult {
   success: boolean;
   error?: string;
 }

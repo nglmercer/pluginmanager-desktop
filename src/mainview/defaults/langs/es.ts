@@ -8,9 +8,11 @@ export const es = {
         "openRulesFolder": "Abrir Carpeta de Reglas",
         "loading": "Cargando plugins...",
         "noPlugins": "No hay plugins instalados todavía.",
+        "noRules": "No hay reglas configuradas todavía.",
         "clickToAdd": "Haz clic en el botón de arriba para abrir el directorio y añadir tus plugins manualmente.",
         "uninstall": "Desinstalar",
         "openPluginFolder": "Abrir Carpeta de Plugin",
+        "deleteRule": "Eliminar Regla",
         "enable": "Activar",
         "disable": "Desactivar",
         "noDescription": "Sin descripción.",
@@ -29,6 +31,9 @@ export const es = {
         "loadFailed": "Error al cargar los plugins: {{error}}",
         "removeConfirm": "¿Estás seguro de que quieres eliminar \"{{name}}\"? Esto borrará la carpeta del plugin permanentemente.",
         "removeSuccess": "Se ha eliminado correctamente {{name}}",
-        "removeFailed": "Error al eliminar: {{error}}"
+        "removeFailed": "Error al eliminar: {{error}}",
+        "deleteRuleConfirm": "¿Estás seguro de que quieres eliminar la regla \"{{id}}\"?",
+        "deleteRuleSuccess": "Se ha eliminado correctamente la regla {{id}}",
+        "deleteRuleFailed": "Error al eliminar la regla: {{error}}"
       }
 }

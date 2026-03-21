@@ -2,7 +2,7 @@ import { LitElement, html } from "lit";
 import { customElement, state } from "lit/decorators.js";
 import { i18next } from "../defaults/i18n.js";
 import { invokeRpc } from "../defaults/rpc.js";
-import type { PluginInfo, RemoveResult } from "../types.js";
+import type { PluginInfo, ActionResult } from "../types.js";
 
 // Register child component
 import "./plugin-list.js";
@@ -59,7 +59,7 @@ export class PluginManager extends LitElement {
     try {
       const result = await invokeRpc("removePlugin", {
         pluginName,
-      }) as RemoveResult;
+      }) as ActionResult;
 
       if (result?.success) {
         this.success = i18next.t("messages.removeSuccess", { name: pluginName });

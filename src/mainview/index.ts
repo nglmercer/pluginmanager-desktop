@@ -20,7 +20,7 @@ export { AppContainer } from "./components/app-container.js";
 export type {
   PluginInfo,
   RuleInfo,
-  RemoveResult,
+  ActionResult,
 } from "./types.js";
 
 // Re-export theme system

@@ -8,9 +8,11 @@ export const en = {
         "openRulesFolder": "Open Rules Folder",
         "loading": "Loading plugins...",
         "noPlugins": "No plugins installed yet.",
+        "noRules": "No rules configured yet.",
         "clickToAdd": "Click the button above to open the directory and add your plugins manually.",
         "uninstall": "Uninstall",
         "openPluginFolder": "Open Plugin Folder",
+        "deleteRule": "Delete Rule",
         "enable": "Enable",
         "disable": "Disable",
         "noDescription": "No description provided.",
@@ -29,6 +31,9 @@ export const en = {
         "loadFailed": "Failed to load plugins: {{error}}",
         "removeConfirm": "Are you sure you want to remove \"{{name}}\"? This will delete the plugin folder permanently.",
         "removeSuccess": "Successfully removed {{name}}",
-        "removeFailed": "Removal failed: {{error}}"
+        "removeFailed": "Removal failed: {{error}}",
+        "deleteRuleConfirm": "Are you sure you want to delete rule \"{{id}}\"?",
+        "deleteRuleSuccess": "Successfully deleted rule {{id}}",
+        "deleteRuleFailed": "Failed to delete rule: {{error}}"
       }
 }

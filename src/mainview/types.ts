@@ -18,7 +18,7 @@ export interface RuleInfo {
   tags?: string[];
 }
 
-export interface RemoveResult {
+export interface ActionResult {
   success: boolean;
   error?: string;
 }

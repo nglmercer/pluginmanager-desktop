@@ -139,14 +139,16 @@ export class IpcHandler {
           },
           
           // Toggle Plugin
-          togglePlugin: (params: RPCRequests['togglePlugin']['params']): boolean => {
-            if (!this.manager) return false;
-            try {
-              void this.manager.togglePlugin(params.pluginName, params.enabled);
-              return true;
-            } catch {
-              return false;
-            }
+          togglePlugin: (params: RPCRequests['togglePlugin']['params']) => {
+            return this.handleAsync((async () => {
+              if (!this.manager) return { success: false, error: "No manager" };
+              try {
+                await this.manager.togglePlugin(params.pluginName, params.enabled);
+                return { success: true };
+              } catch (error) {
+                return { success: false, error: String(error) };
+              }
+            })());
           },
           
           // Get all rules
@@ -337,7 +339,7 @@ export class IpcHandler {
               this.manager.updateEngineFromRegistry();
               
               console.log(`[IPC] Toggled rule ${ruleId} to ${params.enabled} and saved ${filePath}`);
-              return true;
+              return { success: true };
             })());
           },
 
@@ -377,7 +379,7 @@ export class IpcHandler {
               } else {
                 console.warn(`[IPC] Registry.remove(${ruleId}) returned false`);
               }
-              return removed;
+              return { success: removed, error: removed ? undefined : "Rule not found in registry" };
             })());
           },
 
