@@ -1,26 +1,29 @@
 {
-	"name": "electrobun-tray-app",
-	"private": true,
-	"version": "0.0.1",
-	"type": "module",
-	"scripts": {
-		"start": "electrobun dev",
-		"dev": "electrobun dev --watch",
-		"build:canary": "electrobun build --env=canary"
-	},
-	"dependencies": {
-		"bun_plugins": "^1.2.7",
-		"electrobun": "1.15.1",
-		"i18next": "^25.8.20",
-		"lit": "^3.3.2",
-		"lit-i18n": "^4.1.0",
-		"string-dac": "^1.0.0",
-		"trigger_system": "^1.2.1"
-	},
-	"devDependencies": {
-		"autoprefixer": "^10.4.27",
-		"postcss": "^8.5.8",
-		"postcss-lit": "^1.4.1",
-		"tailwindcss": "^4.2.2"
-	}
+  "name": "electrobun-tray-app",
+  "private": true,
+  "version": "0.0.1",
+  "type": "module",
+  "scripts": {
+    "start": "bun run build:css && electrobun dev",
+    "dev": "bun run build:css && electrobun dev --watch",
+    "build:canary": "bun run build:css && electrobun build --env=canary",
+    "build:css": "bun tailwindcss -i ./src/mainview/index.css -o ./src/mainview/dist.css"
+  },
+  "dependencies": {
+    "bun_plugins": "^1.2.7",
+    "bun-plugin-tailwind": "^0.1.2",
+    "electrobun": "1.15.1",
+    "i18next": "^25.8.20",
+    "lit": "^3.3.2",
+    "lit-i18n": "^4.1.0",
+    "string-dac": "^1.0.0",
+    "trigger_system": "^1.2.1"
+  },
+  "devDependencies": {
+    "@tailwindcss/cli": "^4.2.2",
+    "autoprefixer": "^10.4.27",
+    "postcss": "^8.5.8",
+    "postcss-lit": "^1.4.1",
+    "tailwindcss": "^4.2.2"
+  }
 }

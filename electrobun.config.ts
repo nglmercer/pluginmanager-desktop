@@ -1,5 +1,5 @@
 import type { ElectrobunConfig } from "electrobun";
-
+import tailwind from "bun-plugin-tailwind"
 export default {
 	app: {
 		name: "tray-app",
@@ -12,6 +12,9 @@ export default {
 	build: {
 		bun: {
 			entrypoint: "src/bun/index.ts",
+			plugins: [
+				tailwind
+			],
 		},
 		views: {
 			mainview: {
@@ -20,10 +23,10 @@ export default {
 		},
 		copy: {
 			"src/mainview/index.html": "views/mainview/index.html",
-			"src/mainview/index.compiled.css": "views/mainview/index.compiled.css",
 			"src/mainview/index.ts": "views/mainview/index.ts",
 			"src/assets": "views/assets",
 			"src/shared": "views/shared",
+			"src/mainview/dist.css": "views/mainview/dist.css",
 		},
 		mac: {
 			bundleCEF: false,
