@@ -1,5 +1,8 @@
 // Export all components from a single entry point
 export { PluginList } from "./plugin-list.js";
+export { RuleList } from "./rule-list.js";
+export { RuleManager } from "./rule-manager.js";
+export { AppContainer } from "./app-container.js";
 export { SettingsModal } from "./settings-modal.js";
 export { CustomDialog } from "./custom-dialog.js";
 

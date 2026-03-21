@@ -8,6 +8,16 @@ export interface PluginInfo {
   enabled: boolean;
 }
 
+export interface RuleInfo {
+  id: string;
+  name?: string;
+  description?: string;
+  platform: string;
+  enabled: boolean;
+  priority?: number;
+  tags?: string[];
+}
+
 export interface RemoveResult {
   success: boolean;
   error?: string;

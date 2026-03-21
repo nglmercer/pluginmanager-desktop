@@ -1,4 +1,5 @@
 import { RPCSchema } from "electrobun/bun";
+import type { TriggerRule } from "trigger_system/node";
 
 export type AsyncResponseWrapper<T> = T | { type: "async_id"; id: string };
 
@@ -22,6 +23,17 @@ export type PluginManagerRPC = {
       getWindowStatus: { params: {}; response: WindowStatus };
       openRulesFolder: { params: {}; response: AsyncResponseWrapper<string> };
       openPluginFolder: { params: { pluginName: string }; response: AsyncResponseWrapper<boolean> };
+      // ===== Rules Management API =====
+      loadRulesFromDir: { params: { dirPath: string }; response: AsyncResponseWrapper<TriggerRule[]> };
+      loadRulesFromFile: { params: { filePath: string }; response: AsyncResponseWrapper<TriggerRule[]> };
+      saveRule: { params: { rule: TriggerRule; filePath: string }; response: AsyncResponseWrapper<void> };
+      saveAllRules: { params: { rules: TriggerRule[]; baseDir: string }; response: AsyncResponseWrapper<string[]> };
+      deleteRule: { params: { filePath: string }; response: AsyncResponseWrapper<boolean> };
+      ruleExists: { params: { filePath: string }; response: AsyncResponseWrapper<boolean> };
+      ensureRulesDir: { params: { dirPath: string }; response: AsyncResponseWrapper<void> };
+      toggleRule: { params: { ruleId: string; enabled: boolean }; response: AsyncResponseWrapper<boolean> };
+      deleteRuleById: { params: { ruleId: string }; response: AsyncResponseWrapper<boolean> };
+      updateEngineRules: { params: { rules: TriggerRule[] }; response: AsyncResponseWrapper<boolean> };
     };
     messages: {};
   }>;
@@ -66,8 +78,12 @@ export interface PluginStatus {
  */
 export interface RuleInfo {
   id: string;
+  name?: string;
+  description?: string;
   platform: string;
   enabled: boolean;
+  priority?: number;
+  tags?: string[];
 }
 
 /**

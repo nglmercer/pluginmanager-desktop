@@ -2,8 +2,12 @@ import { BrowserView, BrowserWindow, Utils } from "electrobun/bun";
 import { BasePluginManager } from "../manager/baseplugin";
 import { PLATFORMS } from "../constants";
 import { pluginAPI } from "../manager/plugin-api";
+import { rulesAPI } from "../manager/rules-api";
 import { PLUGIN_NAMES } from "../constants";
+import * as path from "path";
+import { RulePersistence } from "trigger_system/node";
 import type { PluginManagerRPC, PluginInfo, PluginStatus, RuleInfo, WindowStatus } from "../../shared/types";
+import type { TriggerRule } from "trigger_system/node";
 
 // This is the type of any RPC handler to help with complex typing
 type RPCRequests = PluginManagerRPC['bun']['requests'];
@@ -150,11 +154,15 @@ export class IpcHandler {
           getRules: (): RuleInfo[] => {
             if (!this.manager) return [];
             const rules = this.manager.engine.getRules();
-            // We assume RuleEngine rules match our RuleInfo partially
-            return rules.map((rule: { id: string, enabled?: boolean }) => ({
+            // Map TriggerRule to RuleInfo with full metadata
+            return rules.map((rule: any): RuleInfo => ({
               id: rule.id,
-              platform: "unknown",
+              name: rule.name,
+              description: rule.description,
+              platform: rule.on || "unknown",
               enabled: rule.enabled ?? true,
+              priority: rule.priority,
+              tags: rule.tags,
             }));
           },
 
@@ -194,6 +202,105 @@ export class IpcHandler {
                  return "";
                }
              })());
+          },
+
+          // ===== Rules Management API =====
+
+          // Load rules from directory
+          loadRulesFromDir: (params: RPCRequests['loadRulesFromDir']['params']) => {
+            return this.handleAsync(rulesAPI.loadRulesFromDir(params.dirPath));
+          },
+
+          // Load rules from file
+          loadRulesFromFile: (params: RPCRequests['loadRulesFromFile']['params']) => {
+            return this.handleAsync(rulesAPI.loadRulesFromFile(params.filePath));
+          },
+
+          // Save a rule
+          saveRule: (params: RPCRequests['saveRule']['params']) => {
+            return this.handleAsync(rulesAPI.saveRule(params.rule, params.filePath));
+          },
+
+          // Save all rules
+          saveAllRules: (params: RPCRequests['saveAllRules']['params']) => {
+            return this.handleAsync(rulesAPI.saveAllRules(params.rules, params.baseDir));
+          },
+
+          // Delete a rule
+          deleteRule: (params: RPCRequests['deleteRule']['params']) => {
+            return this.handleAsync(rulesAPI.deleteRule(params.filePath));
+          },
+
+          // Check if rule file exists
+          ruleExists: (params: RPCRequests['ruleExists']['params']) => {
+            return this.handleAsync(Promise.resolve(rulesAPI.ruleExists(params.filePath)));
+          },
+
+          // Ensure rules directory exists
+          ensureRulesDir: (params: RPCRequests['ensureRulesDir']['params']) => {
+            return this.handleAsync(Promise.resolve(rulesAPI.ensureRulesDir(params.dirPath)));
+          },
+
+          // Update engine rules directly
+          updateEngineRules: (params: RPCRequests['updateEngineRules']['params']) => {
+            if (!this.manager) return false;
+            try {
+              this.manager.engine.updateRules(params.rules);
+              console.log(`[IPC] Updated engine with ${params.rules.length} rules`);
+              return true;
+            } catch (error) {
+              console.error("[IPC] Failed to update engine rules:", error);
+              return false;
+            }
+          },
+
+          // Toggle rule enabled state
+          toggleRule: async (params: RPCRequests['toggleRule']['params']): Promise<boolean> => {
+            if (!this.manager) return false;
+            try {
+              const rulesDir = pluginAPI.getRulesDir();
+              const filePath = path.join(rulesDir, `${params.ruleId}.yaml`);
+              // Load the rule file
+              const rules = await RulePersistence.loadFile(filePath);
+              const rule = rules.find((r: TriggerRule) => r.id === params.ruleId);
+              if (!rule) {
+                console.error(`[IPC] Rule not found: ${params.ruleId}`);
+                return false;
+              }
+              // Update enabled state
+              rule.enabled = params.enabled;
+              // Save back to file
+              await RulePersistence.saveRule(rule, filePath);
+              // Update engine with the modified rule
+              this.manager.engine.updateRules([rule]);
+              console.log(`[IPC] Toggled rule ${params.ruleId} to ${params.enabled}`);
+              return true;
+            } catch (error) {
+              console.error("[IPC] Failed to toggle rule:", error);
+              return false;
+            }
+          },
+
+          // Delete rule by ID
+          deleteRuleById: async (params: RPCRequests['deleteRuleById']['params']): Promise<boolean> => {
+            if (!this.manager) return false;
+            try {
+              const rulesDir = pluginAPI.getRulesDir();
+              const filePath = path.join(rulesDir, `${params.ruleId}.yaml`);
+              // Delete the file
+              const deleted = await RulePersistence.deleteFile(filePath);
+              if (deleted) {
+                // Remove from engine
+                const currentRules = this.manager.engine.getRules();
+                const remaining = currentRules.filter((r: TriggerRule) => r.id !== params.ruleId);
+                this.manager.engine.updateRules(remaining);
+                console.log(`[IPC] Deleted rule ${params.ruleId}`);
+              }
+              return deleted;
+            } catch (error) {
+              console.error("[IPC] Failed to delete rule:", error);
+              return false;
+            }
           },
 
           // Open a specific plugin folder

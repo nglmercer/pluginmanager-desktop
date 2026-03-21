@@ -8,7 +8,7 @@ import { FOLDER_ICON, TRASH_ICON, NO_PLUGINS_ICON } from "../styles/index.js";
 
 /**
  * Plugin List Component
- * Displays the list of installed plugins
+ * Displays the list of installed plugins (list only, no global actions)
  */
 @customElement("plugin-list")
 export class PluginList extends LitElement {
@@ -29,34 +29,22 @@ export class PluginList extends LitElement {
     );
   }
 
-  private async handleOpenFolder(): Promise<void> {
-     // Import invokeRpc to call RPC safely with async fallback
-     const { invokeRpc } = await import("../defaults/rpc.js");
-     await invokeRpc("openPluginsFolder", {});
-  }
-
-  private async handleOpenRulesFolder(): Promise<void> {
-     // Import invokeRpc to call RPC safely with async fallback
-     const { invokeRpc } = await import("../defaults/rpc.js");
-     await invokeRpc("openRulesFolder", {});
-  }
-
   private async handleToggle(pluginName: string, enabled: boolean): Promise<void> {
-     const { invokeRpc } = await import("../defaults/rpc.js");
-     try {
-        await invokeRpc("togglePlugin", { pluginName, enabled });
-     } catch (e) {
-        console.error("Failed to toggle plugin:", e);
-     }
+    const { invokeRpc } = await import("../defaults/rpc.js");
+    try {
+      await invokeRpc("togglePlugin", { pluginName, enabled });
+    } catch (e) {
+      console.error("Failed to toggle plugin:", e);
+    }
   }
 
   private async handleOpenPluginFolder(pluginName: string): Promise<void> {
-     const { invokeRpc } = await import("../defaults/rpc.js");
-     try {
-        await invokeRpc("openPluginFolder", { pluginName });
-     } catch (e) {
-        console.error("Failed to open plugin folder:", e);
-     }
+    const { invokeRpc } = await import("../defaults/rpc.js");
+    try {
+      await invokeRpc("openPluginFolder", { pluginName });
+    } catch (e) {
+      console.error("Failed to open plugin folder:", e);
+    }
   }
 
   render() {
@@ -64,30 +52,8 @@ export class PluginList extends LitElement {
       return html`<div class="text-primary text-center p-5">${t("app.loading")}</div>`;
     }
 
-    const header = html`
-      <div class="card mb-5 border-dashed border-border bg-hover p-5 rounded-lg">
-         <div class="flex justify-between items-center gap-[15px]">
-            <div class="flex-1">
-               <h4 class="m-0 mb-[5px] text-primary">${t("app.manualManagement")}</h4>
-               <p class="m-0 text-[0.9em] text-muted">
-                 ${t("app.dragDropNotice")}
-               </p>
-            </div>
-            <div class="flex gap-[10px]">
-               <button class="btn" @click=${this.handleOpenFolder}>
-                  ${t("app.openFolder")}
-               </button>
-               <button class="btn" @click=${this.handleOpenRulesFolder}>
-                  ${t("app.openRules")}
-               </button>
-            </div>
-         </div>
-      </div>
-    `;
-
     if (this.plugins.length === 0) {
       return html`
-        ${header}
         <div class="text-center text-muted py-10 px-5">
           ${NO_PLUGINS_ICON}
           <p class="m-[5px_0]">${t("app.noPlugins")}</p>
@@ -97,7 +63,6 @@ export class PluginList extends LitElement {
     }
 
     return html`
-      ${header}
       <div class="flex flex-col gap-[10px]">
         ${this.plugins.map(
           (plugin) => html`
@@ -117,26 +82,26 @@ export class PluginList extends LitElement {
               </div>
               <div class="flex items-center gap-3">
                 <label class="relative inline-block w-10 h-5 mr-1" title="${plugin.enabled ? t("app.disable") : t("app.enable")}">
-                   <input 
-                      type="checkbox" 
-                      class="opacity-0 w-0 h-0"
-                      ?checked=${plugin.enabled}
-                      @change=${(e: Event) => this.handleToggle(plugin.id || plugin.name, (e.target as HTMLInputElement).checked)}
-                   >
-                   <span class="slider absolute cursor-pointer inset-0 bg-border transition-all duration-400 rounded-[20px] checked:bg-success"></span>
+                  <input
+                    type="checkbox"
+                    class="opacity-0 w-0 h-0"
+                    ?checked=${plugin.enabled}
+                    @change=${(e: Event) => this.handleToggle(plugin.id || plugin.name, (e.target as HTMLInputElement).checked)}
+                  />
+                  <span class="slider absolute cursor-pointer inset-0 bg-border transition-all duration-400 rounded-[20px] checked:bg-success"></span>
                 </label>
-                
-                <button 
-                  class="bg-transparent border border-border p-2 cursor-pointer rounded-md flex items-center justify-center text-primary transition-all duration-200 hover:bg-hover hover:border-primary hover:text-primary" 
+
+                <button
+                  class="bg-transparent border border-border p-2 cursor-pointer rounded-md flex items-center justify-center text-primary transition-all duration-200 hover:bg-hover hover:border-primary hover:text-primary"
                   @click=${() => this.handleOpenPluginFolder(plugin.id || plugin.name)}
                   title="${t("app.openPluginFolder")}"
                 >
                   ${FOLDER_ICON}
                 </button>
-                
+
                 <button
                   class="bg-transparent border border-border p-2 cursor-pointer rounded-md flex items-center justify-center text-primary transition-all duration-200 hover:bg-danger-muted hover:border-danger hover:text-danger"
-                  @click=${() => this.handleRemove((plugin).id || plugin.name)}
+                  @click=${() => this.handleRemove(plugin.id || plugin.name)}
                   title="${t("app.uninstall")}"
                 >
                   ${TRASH_ICON}

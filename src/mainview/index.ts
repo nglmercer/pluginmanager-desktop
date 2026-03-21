@@ -8,10 +8,18 @@ import "./defaults/i18n.js";
 import { getThemeManager } from "./styles/index.js";
 getThemeManager().applyToDocument();
 
-// Re-export the PluginManager component and types
-export { PluginManager } from "./components/plugin-manager.js";
+// Import all components to register custom elements
+import "./components/app-container.js";
+import "./components/plugin-manager.js";
+import "./components/rule-manager.js";
+import "./components/rule-list.js";
+import "./components/plugin-list.js";
+
+// Re-export the AppContainer and types
+export { AppContainer } from "./components/app-container.js";
 export type {
   PluginInfo,
+  RuleInfo,
   RemoveResult,
 } from "./types.js";
 

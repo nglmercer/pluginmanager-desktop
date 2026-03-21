@@ -1,4 +1,4 @@
-import { TriggerLoader } from "trigger_system/node";
+import { RulePersistence,RuleRegistry,TriggerLoader } from "trigger_system/node";
 import { BasePluginManager } from "./manager/baseplugin";
 import { ensureDir, getBaseDir } from "./utils/filepath";
 import { ActionRegistryPlugin } from "./manager/Register";
@@ -39,10 +39,11 @@ export async function main() {
 
   const rulesDir = path.resolve(getBaseDir(), PATHS.RULES_DIR);
   const result = ensureDir(rulesDir);
-
+  //const watcher = new RuleWatcher();
   //watcher se ejecuta despues o demora al inicializar que los demas eventos
-  const watcher = TriggerLoader.watchRules(rulesDir, async (newRules) => {
+    const watcher = TriggerLoader.watchRules(rulesDir, async (newRules) => {
     engine.updateRules(newRules);
+    RulePersistence.loadFromDir(rulesDir);
     const ruleIds = engine.getRules().map((r) => r.id);
     const loadedPlugins = manager.listPlugins();
     console.log({
@@ -52,6 +53,9 @@ export async function main() {
     });
 
   });
+  const rulereg = new RuleRegistry();
+  rulereg.setDefaultDir(rulesDir);
+  //console.log(rulereg.getAll());
   watcher.on("error", (err) => {
     console.error("Error watching rules:", err);
   });
@@ -65,6 +69,7 @@ export async function main() {
     watcher,
     rulesDir,
     result,
+    rulereg
   };
 }
 

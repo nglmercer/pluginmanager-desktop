@@ -1,23 +1,15 @@
 import { LitElement, html } from "lit";
-import { customElement, state, query } from "lit/decorators.js";
-import { translate as t } from "lit-i18n";
+import { customElement, state } from "lit/decorators.js";
 import { i18next } from "../defaults/i18n.js";
 import { invokeRpc } from "../defaults/rpc.js";
 import type { PluginInfo, RemoveResult } from "../types.js";
 
-// Import modular components
-import { SettingsModal } from "./settings-modal.js";
-
-// Import theme system
-import { getThemeManager, APP_ICON, SETTINGS_ICON } from "../styles/index.js";
-
-// Register the child components
+// Register child component
 import "./plugin-list.js";
-import "./settings-modal.js";
 
 /**
- * Main Plugin Manager Component
- * Container component that orchestrates the plugin management UI
+ * Plugin Manager Container
+ * Handles data loading and events for the plugin list
  */
 @customElement("plugin-manager")
 export class PluginManager extends LitElement {
@@ -30,26 +22,17 @@ export class PluginManager extends LitElement {
   @state() private error: string = "";
   @state() private success: string = "";
 
-  @query("settings-modal") private _settingsModal!: SettingsModal;
-
-  private themeManager = getThemeManager();
-  private _themeUnsubscribe?: () => void;
   private _pollInterval?: ReturnType<typeof setInterval>;
 
   connectedCallback() {
     super.connectedCallback();
     this.loadPlugins();
-    this._themeUnsubscribe = this.themeManager.subscribe(() => this.requestUpdate());
-    
-    // Poll for changes in plugins list as we now rely on manual management
+    // Poll for changes
     this._pollInterval = setInterval(() => this.loadPlugins(), 2000);
   }
 
   disconnectedCallback() {
     super.disconnectedCallback();
-    if (this._themeUnsubscribe) {
-      this._themeUnsubscribe();
-    }
     if (this._pollInterval) {
       clearInterval(this._pollInterval);
     }
@@ -95,29 +78,9 @@ export class PluginManager extends LitElement {
     this.removePlugin(e.detail.pluginName);
   }
 
-  private openSettings(): void {
-    this._settingsModal.open();
-  }
-
-  private handleSettingsChanged(): void {
-    this.requestUpdate();
-  }
-
   render() {
     return html`
-      <div class="p-5 max-w-[800px] mx-auto">
-        <h2 class="text-primary mb-5 text-[1.5rem] flex items-center gap-[10px]">
-          ${APP_ICON}
-          ${t("app.title")}
-          <button
-            class="ml-auto bg-transparent border border-border p-2 cursor-pointer rounded-md transition-colors flex items-center justify-center text-primary hover:bg-hover"
-            @click=${this.openSettings}
-            title="${t("app.settings")}"
-          >
-            ${SETTINGS_ICON}
-          </button>
-        </h2>
-
+      <div class="p-5">
         ${this.error ? html`<div class="p-[10px] rounded-md mb-[15px] text-danger bg-danger-muted">${this.error}</div>` : ""}
         ${this.success
           ? html`<div class="p-[10px] rounded-md mb-[15px] text-success bg-success-muted">${this.success}</div>`
@@ -128,8 +91,6 @@ export class PluginManager extends LitElement {
           .loading=${this.loading}
           @plugin-remove=${this.handlePluginRemove}
         ></plugin-list>
-
-        <settings-modal @settings-changed=${this.handleSettingsChanged}></settings-modal>
       </div>
     `;
   }
