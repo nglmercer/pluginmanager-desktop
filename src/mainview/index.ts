@@ -2,14 +2,14 @@
 import "./defaults/dialogs.js";
 
 // Initialize i18n
-import "./i18n.js";
+import "./defaults/i18n.js";
 
 // Initialize theme manager
 import { getThemeManager } from "./styles/index.js";
 getThemeManager().applyToDocument();
 
 // Re-export the PluginManager component and types
-export { PluginManager } from "./plugin-manager.js";
+export { PluginManager } from "./components/plugin-manager.js";
 export type {
   PluginInfo,
   RemoveResult,

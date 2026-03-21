@@ -1,19 +1,19 @@
 import { LitElement, html } from "lit";
 import { customElement, state, query } from "lit/decorators.js";
 import { translate as t } from "lit-i18n";
-import { i18next } from "./i18n.js";
-import { invokeRpc } from "./rpc.js";
-import type { PluginInfo, RemoveResult } from "./types.js";
+import { i18next } from "../defaults/i18n.js";
+import { invokeRpc } from "../defaults/rpc.js";
+import type { PluginInfo, RemoveResult } from "../types.js";
 
 // Import modular components
-import { SettingsModal } from "./components/settings-modal.js";
+import { SettingsModal } from "./settings-modal.js";
 
 // Import theme system
-import { getThemeManager, APP_ICON, SETTINGS_ICON } from "./styles/index.js";
+import { getThemeManager, APP_ICON, SETTINGS_ICON } from "../styles/index.js";
 
 // Register the child components
-import "./components/plugin-list.js";
-import "./components/settings-modal.js";
+import "./plugin-list.js";
+import "./settings-modal.js";
 
 /**
  * Main Plugin Manager Component

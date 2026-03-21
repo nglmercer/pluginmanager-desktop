@@ -1,5 +1,5 @@
 import { Electroview } from "electrobun/view";
-import type { PluginManagerRPC } from "../shared/types";
+import type { PluginManagerRPC } from "../../shared/types";
 
 // Type for async callback resolving
 type Resolver = (data: unknown) => void;

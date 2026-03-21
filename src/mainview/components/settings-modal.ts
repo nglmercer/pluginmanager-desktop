@@ -1,7 +1,7 @@
 import { LitElement, html } from "lit";
 import { customElement, query } from "lit/decorators.js";
 import { translate as t } from "lit-i18n";
-import { i18next } from "../i18n.js";
+import { i18next } from "../defaults/i18n.js";
 import { getThemeManager, CLOSE_ICON, CHEVRON_DOWN_ICON } from "../styles/index.js";
 
 /**

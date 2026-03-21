@@ -31,18 +31,18 @@ export class PluginList extends LitElement {
 
   private async handleOpenFolder(): Promise<void> {
      // Import invokeRpc to call RPC safely with async fallback
-     const { invokeRpc } = await import("../rpc.js");
+     const { invokeRpc } = await import("../defaults/rpc.js");
      await invokeRpc("openPluginsFolder", {});
   }
 
   private async handleOpenRulesFolder(): Promise<void> {
      // Import invokeRpc to call RPC safely with async fallback
-     const { invokeRpc } = await import("../rpc.js");
+     const { invokeRpc } = await import("../defaults/rpc.js");
      await invokeRpc("openRulesFolder", {});
   }
 
   private async handleToggle(pluginName: string, enabled: boolean): Promise<void> {
-     const { invokeRpc } = await import("../rpc.js");
+     const { invokeRpc } = await import("../defaults/rpc.js");
      try {
         await invokeRpc("togglePlugin", { pluginName, enabled });
      } catch (e) {
@@ -51,7 +51,7 @@ export class PluginList extends LitElement {
   }
 
   private async handleOpenPluginFolder(pluginName: string): Promise<void> {
-     const { invokeRpc } = await import("../rpc.js");
+     const { invokeRpc } = await import("../defaults/rpc.js");
      try {
         await invokeRpc("openPluginFolder", { pluginName });
      } catch (e) {
