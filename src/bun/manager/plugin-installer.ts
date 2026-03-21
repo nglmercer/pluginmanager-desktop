@@ -6,7 +6,6 @@
 
 import { join } from "node:path";
 import * as fs from "node:fs/promises";
-import * as fsSync from "node:fs";
 import { getBaseDir } from "../utils/filepath";
 import { PATHS } from "../constants";
 import { BasePluginManager } from "./baseplugin";
@@ -14,6 +13,10 @@ import { JsonPluginStorage } from "bun_plugins";
 export class PluginInstallerService {
   public static getPluginsDir(): string {
     return join(getBaseDir(), PATHS.PLUGINS_DIR);
+  }
+
+  public static getRulesDir(): string {
+    return join(getBaseDir(), PATHS.RULES_DIR);
   }
 
   public static async removePlugin(pluginName: string, manager?: BasePluginManager): Promise<{ success: boolean; error?: string }> {
@@ -32,8 +35,8 @@ export class PluginInstallerService {
     }
   }
 
-  public static isPluginInstalled(pluginName: string): boolean {
-    return fsSync.existsSync(join(this.getPluginsDir(), pluginName));
+  public static isPluginInstalled(pluginName: string, manager?: BasePluginManager): boolean {
+    return manager?.getPluginPath(pluginName) !== undefined && manager?.getPlugin(pluginName) !== undefined;
   }
   public static getConfig(pluginName: string, key: string):unknown | boolean{
     const storage = JsonPluginStorage.getInstanceByName(pluginName);
@@ -56,6 +59,7 @@ export class PluginInstallerService {
 export const removePlugin = PluginInstallerService.removePlugin.bind(PluginInstallerService);
 export const isPluginInstalled = PluginInstallerService.isPluginInstalled.bind(PluginInstallerService);
 export const getPluginsDir = PluginInstallerService.getPluginsDir.bind(PluginInstallerService);
+export const getRulesDir = PluginInstallerService.getRulesDir.bind(PluginInstallerService);
 
 /**
  * Backward compatible PluginInstaller object
@@ -64,6 +68,7 @@ export const PluginInstaller = {
   removePlugin,
   isPluginInstalled,
   getPluginsDir,
+  getRulesDir,
 };
 
 export default PluginInstaller;

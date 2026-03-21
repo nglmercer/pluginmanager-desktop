@@ -9,16 +9,14 @@ import {
   isPluginInstalled,
 } from "./plugin-installer";
 import { BasePluginManager } from "./baseplugin";
-import type { PluginInfo } from "../ipc";
-
 export interface PluginManagerAPI {
   // Management
-  listPlugins: (manager: BasePluginManager) => PluginInfo[];
   removePlugin: (pluginName: string, manager?: BasePluginManager) => Promise<{ success: boolean; error?: string }>;
   isPluginInstalled: (pluginName: string) => boolean;
   
   // Paths
   getPluginsDir: () => string;
+  getRulesDir: () => string;
   
   // Hot reload
   reloadPlugin: (pluginName: string, manager: BasePluginManager) => Promise<boolean>;
@@ -28,20 +26,6 @@ export interface PluginManagerAPI {
  * Plugin Manager API instance
  */
 export const pluginAPI: PluginManagerAPI = {
-  /**
-   * List all installed plugins
-   */
-  listPlugins: (manager: BasePluginManager) => {
-      if (!manager) return [];
-      const plugins = manager.listPlugins();
-      return plugins.map((id) => ({
-        id,
-        name: id,
-        version: "1.0.0",
-        enabled: true,
-      }));
-  },
-
   /**
    * Remove a plugin
    */
@@ -70,6 +54,13 @@ export const pluginAPI: PluginManagerAPI = {
    */
   getPluginsDir: (): string => {
     return PluginInstaller.getPluginsDir();
+  },
+
+  /**
+   * Get the rules directory path
+   */
+  getRulesDir: (): string => {
+    return PluginInstaller.getRulesDir();
   },
 
   /**

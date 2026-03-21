@@ -101,6 +101,12 @@ export class PluginList extends LitElement {
      await invokeRpc("openPluginsFolder", {});
   }
 
+  private async handleOpenRulesFolder(): Promise<void> {
+     // Import invokeRpc to call RPC safely with async fallback
+     const { invokeRpc } = await import("../rpc.js");
+     await invokeRpc("openRulesFolder", {});
+  }
+
   render() {
     if (this.loading) {
       return html`<div class="loading">${t("app.loading")}</div>`;
@@ -115,9 +121,14 @@ export class PluginList extends LitElement {
                  ${t("app.dragDropNotice")}
                </p>
             </div>
-            <button class="btn-primary" @click=${this.handleOpenFolder}>
-               ${t("app.openFolder")}
-            </button>
+            <div style="display: flex; gap: 8px;">
+               <button class="btn-primary" @click=${this.handleOpenFolder}>
+                  ${t("app.openFolder")}
+               </button>
+               <button class="btn-primary" @click=${this.handleOpenRulesFolder}>
+                  ${t("app.openRules")}
+               </button>
+            </div>
          </div>
       </div>
     `;

@@ -3,7 +3,7 @@ import { RuleEngine } from "trigger_system/node";
 import { join } from "node:path";
 import { actionRegistryPlugin, ActionRegistryPlugin } from "./Register";
 import { ensureDir, getBaseDir } from "../utils/filepath";
-import { PLUGIN_NAMES } from "../constants";
+import { PLUGIN_NAMES, PATHS } from "../constants";
 import { helpers } from "./defaults/helpers";
 
 /**
@@ -14,7 +14,8 @@ export class BasePluginManager extends PluginManager {
   public engine: RuleEngine;
   public alreadyLoaded: boolean = false;
   public actionRegistryPlugin: ActionRegistryPlugin | null = null;
-  public pluginsDir = join(getBaseDir(), "plugins");
+  public pluginsDir = join(getBaseDir(), PATHS.PLUGINS_DIR);
+  public rulesDir = join(getBaseDir(), PATHS.RULES_DIR);
 
   constructor() {
     super(undefined, {
@@ -22,6 +23,10 @@ export class BasePluginManager extends PluginManager {
     });
     // Inicializar el motor de reglas
     this.engine = new RuleEngine({ rules: [], globalSettings: { debugMode: true } });
+    
+    // Ensure directories exist
+    ensureDir(this.pluginsDir);
+    ensureDir(this.rulesDir);
     
     // Registrar los plugins core automáticamente
     this.actionRegistryPlugin = actionRegistryPlugin;
@@ -48,6 +53,13 @@ export class BasePluginManager extends PluginManager {
         pluginHelpers
     });
     this.engine.processEventSimple(eventName, data, pluginHelpers);
+  }
+
+  /**
+   * Get the rules directory path
+   */
+  public getRulesDir(): string {
+    return this.rulesDir;
   }
 
   /**

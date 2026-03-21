@@ -71,16 +71,18 @@ export class IpcHandler {
           // Get all loaded plugins
           getPlugins: (): PluginInfo[] => {
             if (!this.manager) return [];
-            const plugins = this.manager.listPlugins();
             // filter core plugin or default plugins
-            const filteredPlugins = plugins.filter(id => id !== PLUGIN_NAMES.ACTION_REGISTRY);
-            
-            return filteredPlugins.map((id) => ({
-              id,
-              name: id,
-              version: "1.0.0",
-              enabled: true,
+            const pluginsInfo = this.manager.getPluginStatus();
+            const pluginInfo = Object.entries(pluginsInfo).map(([key, value]) => ({
+              id: key,
+              name: value.name || key,
+              version: value.version,
+              status: value.status,
+              enabled: value.enabled || value.status === 'active',
             }));
+            const filteredPlugins = pluginInfo.filter((plugin) => plugin.id !== PLUGIN_NAMES.ACTION_REGISTRY);
+            console.log(pluginInfo,filteredPlugins)
+            return filteredPlugins;
           },
 
           // Get specific plugin status
@@ -163,6 +165,20 @@ export class IpcHandler {
              })());
           },
 
+          // Open rules folder in file explorer
+          openRulesFolder: () => {
+             return this.handleAsync((async () => {
+               const rulesDir = pluginAPI.getRulesDir();
+               console.log(`[IPC] Opening rules folder: ${rulesDir}`);
+               try {
+                 Utils.showItemInFolder(rulesDir);
+                 return rulesDir;
+               } catch (e) {
+                 console.error("[IPC] Failed to open rules folder:", e);
+                 return "";
+               }
+             })());
+          },
           // Get window status
           getWindowStatus: (): WindowStatus => {
             return {
