@@ -2,7 +2,7 @@ import { LitElement, html, css } from "lit";
 import { customElement, query } from "lit/decorators.js";
 import { translate as t } from "lit-i18n";
 import { i18next } from "../i18n.js";
-import { getThemeManager, baseStyles } from "../styles/index.js";
+import { getThemeManager, baseStyles, tailwindStyles } from "../styles/index.js";
 
 /**
  * Settings Modal Component
@@ -11,114 +11,38 @@ import { getThemeManager, baseStyles } from "../styles/index.js";
 @customElement("settings-modal")
 export class SettingsModal extends LitElement {
   static styles = [
+    tailwindStyles,
     baseStyles,
     css`
-      @tailwind base;
-      @tailwind components;
-      @tailwind utilities;
-
-      dialog {
-        background: var(--card-bg);
-        border: 1px solid var(--border-color);
-        border-radius: 12px;
-        color: var(--text-color);
-        padding: 0;
-        width: 90%;
-        max-width: 400px;
-        box-shadow: 0 10px 25px var(--shadow-color-strong);
-        border: 1px solid var(--border-color);
-        margin: auto;
-      }
-
       dialog::backdrop {
         background: var(--overlay-bg);
-        backdrop-filter: blur(4px);
+        backdrop-filter: blur(8px);
+        animation: backdrop-fade-in 0.3s ease-out;
       }
 
-      .modal-header {
-        padding: 15px 20px;
-        border-bottom: 1px solid var(--border-color);
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
+      @keyframes backdrop-fade-in {
+        from { opacity: 0; }
+        to { opacity: 1; }
       }
 
-      .modal-header h3 {
-        margin: 0;
-        font-size: 1.1rem;
-        color: var(--text-color);
+      dialog[open] {
+        animation: dialog-slide-up 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
       }
 
-      .modal-content {
-        padding: 20px;
+      @keyframes dialog-slide-up {
+        from {
+          opacity: 0;
+          transform: translateY(20px) scale(0.95);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0) scale(1);
+        }
       }
-
-      .settings-group {
-        margin-bottom: 20px;
-      }
-
-      .settings-group label {
-        font-weight: 600;
-        margin-bottom: 10px;
-        display: block;
-        color: var(--text-color);
-      }
-
-      .theme-options {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 10px;
-      }
-
-      .theme-btn {
-        padding: 12px;
-        border: 1px solid var(--border-color);
-        background: var(--bg-color);
-        color: var(--text-color);
-        border-radius: 8px;
-        cursor: pointer;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        gap: 5px;
-        transition: all 0.2s;
-        font-size: 14px;
-      }
-
-      .theme-btn:hover {
-        background: var(--hover-bg);
-        border-color: var(--primary-color);
-      }
-
-      .theme-btn.active {
-        background: var(--primary-muted);
-        border-color: var(--primary-color);
-        color: var(--primary-color);
-      }
-
-      .close-btn {
-        background: transparent;
-        border: none;
-        color: var(--text-muted);
-        cursor: pointer;
-        font-size: 24px;
-        line-height: 1;
-        padding: 4px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        border-radius: 50%;
-        width: 32px;
-        height: 32px;
-      }
-
-      .close-btn:hover {
-        background: var(--hover-bg);
-        color: var(--text-color);
-      }
-
-      select {
-          cursor: pointer;
+      
+      select:focus {
+        outline: none;
+        box-shadow: 0 0 0 2px var(--primary-color);
       }
     `,
   ];
@@ -126,6 +50,21 @@ export class SettingsModal extends LitElement {
   @query("dialog") private _dialog!: HTMLDialogElement;
 
   private themeManager = getThemeManager();
+  private _themeUnsubscribe?: () => void;
+
+  connectedCallback() {
+    super.connectedCallback();
+    this._themeUnsubscribe = this.themeManager.subscribe(() => {
+       this.requestUpdate();
+    });
+  }
+
+  disconnectedCallback() {
+    super.disconnectedCallback();
+    if (this._themeUnsubscribe) {
+      this._themeUnsubscribe();
+    }
+  }
 
   open() {
     this._dialog.showModal();
@@ -154,42 +93,69 @@ export class SettingsModal extends LitElement {
     const currentMode = this.themeManager.getMode();
 
     return html`
-      <dialog @click=${(e: MouseEvent) => e.target === this._dialog && this.close()}>
-        <div class="modal-header">
-          <h3>${t("app.settings")}</h3>
-          <button class="close-btn" @click=${this.close}>&times;</button>
+      <dialog 
+        class="bg-card/80 backdrop-blur-md border border-border rounded-2xl text-primary p-0 w-[90%] max-w-[400px] shadow-[0_20px_50px_rgba(0,0,0,0.3)] m-auto overflow-hidden ring-1 ring-white/10"
+        @click=${(e: MouseEvent) => e.target === this._dialog && this.close()}
+      >
+        <div class="px-6 py-4 border-b border-border/50 flex justify-between items-center bg-white/5">
+          <h3 class="m-0 text-lg font-semibold tracking-tight text-primary">${t("app.settings")}</h3>
+          <button 
+            class="text-muted hover:text-primary transition-colors p-2 rounded-full hover:bg-white/5" 
+            @click=${this.close}
+          >
+             <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+               <path d="M18 6L6 18M6 6l12 12"></path>
+             </svg>
+          </button>
         </div>
-        <div class="modal-content">
-          <div class="settings-group">
-            <label>${t("app.theme")}</label>
-            <div class="theme-options">
+        
+        <div class="px-6 py-6">
+          <div class="mb-8">
+            <label class="block text-sm font-bold text-muted uppercase tracking-wider mb-4 px-1">${t("app.theme")}</label>
+            <div class="grid grid-cols-2 gap-4">
               <button
-                class="theme-btn ${currentMode === "light" ? "active" : ""}"
+                class="p-4 border rounded-2xl flex flex-col items-center gap-2 transition-all duration-300 group ${currentMode === "light" ? "bg-primary border-primary text-white shadow-lg shadow-primary/20" : "bg-input border-border text-muted hover:border-primary/50"}"
                 @click=${() => this.handleThemeChange("light")}
               >
-                <span>☀️</span>
-                <span>${t("app.themeLight")}</span>
+                <span class="text-2xl transform transition-transform group-hover:scale-110 group-active:scale-90">☀️</span>
+                <span class="font-semibold text-xs">${t("app.themeLight")}</span>
               </button>
               <button
-                class="theme-btn ${currentMode === "dark" ? "active" : ""}"
+                class="p-4 border rounded-2xl flex flex-col items-center gap-2 transition-all duration-300 group ${currentMode === "dark" ? "bg-primary border-primary text-white shadow-lg shadow-primary/20" : "bg-input border-border text-muted hover:border-primary/50"}"
                 @click=${() => this.handleThemeChange("dark")}
               >
-                <span>🌙</span>
-                <span>${t("app.themeDark")}</span>
+                <span class="text-2xl transform transition-transform group-hover:scale-110 group-active:scale-90">🌙</span>
+                <span class="font-semibold text-xs">${t("app.themeDark")}</span>
               </button>
             </div>
           </div>
 
-          <div class="settings-group">
-            <label>${t("app.language")}</label>
-            <select @change=${this.handleLangChange} .value=${i18next.language}>
-              <option value="en">English</option>
-              <option value="es">Español</option>
-            </select>
+          <div class="mb-6">
+            <label class="block text-sm font-bold text-muted uppercase tracking-wider mb-4 px-1">${t("app.language")}</label>
+            <div class="relative group">
+                <select 
+                    class="appearance-none w-full bg-input border border-border rounded-xl px-5 py-3.5 text-primary font-medium cursor-pointer transition-all duration-200 hover:border-primary/50 focus:border-primary focus:bg-background" 
+                    @change=${this.handleLangChange} 
+                    .value=${i18next.language}
+                >
+                  <option value="en">English (US)</option>
+                  <option value="es">Español (ES)</option>
+                </select>
+                <div class="absolute right-5 top-1/2 -translate-y-1/2 pointer-events-none text-muted group-hover:text-primary transition-colors">
+                   <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                     <path d="M6 9l6 6 6-6"></path>
+                   </svg>
+                </div>
+            </div>
           </div>
           
-          <div style="margin-top: 20px; display: flex; justify-content: flex-end;">
-              <button class="btn-primary" @click=${this.close}>${t("app.close")}</button>
+          <div class="mt-8 flex justify-end">
+              <button 
+                class="w-full sm:w-auto px-10 py-3 rounded-xl bg-primary text-white font-bold shadow-lg shadow-primary/20 transition-all duration-200 hover:brightness-110 active:scale-95" 
+                @click=${this.close}
+              >
+                ${t("app.close")}
+              </button>
           </div>
         </div>
       </dialog>

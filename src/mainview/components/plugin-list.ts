@@ -4,7 +4,7 @@ import { translate as t } from "lit-i18n";
 import type { PluginInfo } from "../types.js";
 
 // Import theme system
-import { baseStyles, FOLDER_ICON, TRASH_ICON } from "../styles/index.js";
+import { baseStyles, tailwindStyles, FOLDER_ICON, TRASH_ICON } from "../styles/index.js";
 
 /**
  * Plugin List Component
@@ -13,123 +13,10 @@ import { baseStyles, FOLDER_ICON, TRASH_ICON } from "../styles/index.js";
 @customElement("plugin-list")
 export class PluginList extends LitElement {
   static styles = [
+    tailwindStyles,
     baseStyles,
     css`
-    @tailwind base;
-    @tailwind components;
-    @tailwind utilities;
-
-    .plugin-list {
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-    }
-
-    .plugin-item {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 15px;
-      background: var(--card-bg);
-      border-radius: 6px;
-      border: 1px solid var(--border-color);
-      transition: transform 0.2s, box-shadow 0.2s;
-    }
-
-    .plugin-item:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-      border-color: var(--primary-color);
-    }
-
-    .plugin-info {
-      flex: 1;
-    }
-
-    .plugin-header {
-       display: flex;
-       align-items: center;
-       gap: 10px;
-       margin-bottom: 4px;
-    }
-
-    .plugin-name {
-      color: var(--text-color);
-      font-weight: 600;
-      font-size: 1.1rem;
-    }
-
-    .plugin-version {
-      color: var(--text-muted);
-      font-size: 12px;
-      padding: 2px 6px;
-      background: var(--hover-bg);
-      border-radius: 4px;
-    }
-
-    .plugin-description {
-      color: var(--text-muted);
-      font-size: 13px;
-      margin-top: 4px;
-      line-height: 1.4;
-    }
-
-    .plugin-actions {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-    }
-
-    .loading {
-      color: var(--primary-color);
-      text-align: center;
-      padding: 20px;
-    }
-
-    .empty-state {
-      text-align: center;
-      color: var(--text-muted);
-      padding: 40px 20px;
-    }
-
-    .empty-state svg {
-      width: 48px;
-      height: 48px;
-      margin-bottom: 15px;
-      opacity: 0.5;
-    }
-
-    .empty-state p {
-      margin: 5px 0;
-    }
-
-    /* Toggle Switch Styles */
-    .switch {
-      position: relative;
-      display: inline-block;
-      width: 40px;
-      height: 20px;
-      margin-right: 4px;
-    }
-
-    .switch input {
-      opacity: 0;
-      width: 0;
-      height: 0;
-    }
-
-    .slider {
-      position: absolute;
-      cursor: pointer;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      background-color: var(--border-color);
-      transition: .4s;
-      border-radius: 20px;
-    }
-
+    /* Custom styles for elements that are harder to target with utility classes or for complex animations */
     .slider:before {
       position: absolute;
       content: "";
@@ -142,37 +29,8 @@ export class PluginList extends LitElement {
       border-radius: 50%;
     }
 
-    input:checked + .slider {
-      background-color: var(--success-color);
-    }
-
     input:checked + .slider:before {
       transform: translateX(20px);
-    }
-
-    .btn-icon {
-      background: transparent;
-      border: 1px solid var(--border-color);
-      padding: 8px;
-      cursor: pointer;
-      border-radius: 6px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: var(--text-color);
-      transition: all 0.2s;
-    }
-
-    .btn-icon:hover {
-      background: var(--hover-bg);
-      border-color: var(--primary-color);
-      color: var(--primary-color);
-    }
-
-    .btn-icon.danger:hover {
-       background: var(--danger-muted);
-       border-color: var(--danger-color);
-       color: var(--danger-color);
     }
   `
   ];
@@ -222,7 +80,7 @@ export class PluginList extends LitElement {
 
   render() {
     if (this.loading) {
-      return html`<div class="loading">${t("app.loading")}</div>`;
+      return html`<div class="text-primary text-center p-5">${t("app.loading")}</div>`;
     }
 
     const header = html`
@@ -249,54 +107,56 @@ export class PluginList extends LitElement {
     if (this.plugins.length === 0) {
       return html`
         ${header}
-        <div class="empty-state">
+        <div class="text-center text-muted py-10 px-5">
           <svg
             viewBox="0 0 24 24"
             fill="none"
             stroke="currentColor"
             stroke-width="2"
+            class="w-12 h-12 mb-[15px] opacity-50 mx-auto"
           >
             <path
               d="M20 7h-9M14 17H5M17 17a3 3 0 1 0 0-6 3 3 0 0 0 0 6ZM7 7a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z"
             />
           </svg>
-          <p>${t("app.noPlugins")}</p>
-          <p>${t("app.clickToAdd")}</p>
+          <p class="m-[5px_0]">${t("app.noPlugins")}</p>
+          <p class="m-[5px_0]">${t("app.clickToAdd")}</p>
         </div>
       `;
     }
 
     return html`
       ${header}
-      <div class="plugin-list">
+      <div class="flex flex-col gap-[10px]">
         ${this.plugins.map(
           (plugin) => html`
-            <div class="plugin-item">
-              <div class="plugin-info">
-                <div class="plugin-header">
-                  <span class="plugin-name">${plugin.name}</span>
-                  <span class="plugin-version">v${plugin.version}</span>
+            <div class="flex justify-between items-center p-[15px] bg-card rounded-md border border-border transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md hover:border-primary">
+              <div class="flex-1">
+                <div class="flex items-center gap-[10px] mb-1">
+                  <span class="text-primary font-semibold text-[1.1rem]">${plugin.name}</span>
+                  <span class="text-muted text-[12px] py-0.5 px-1.5 bg-hover rounded-md">v${plugin.version}</span>
                 </div>
                 ${plugin.description
                   ? html`
-                      <div class="plugin-description">
+                      <div class="text-muted text-[13px] mt-1 leading-[1.4]">
                         ${plugin.description}
                       </div>
                     `
-                  : html`<div class="plugin-description">${t("app.noDescription")}</div>`}
+                  : html`<div class="text-muted text-[13px] mt-1 leading-[1.4]">${t("app.noDescription")}</div>`}
               </div>
-              <div class="plugin-actions">
-                <label class="switch" title="${plugin.enabled ? t("app.disable") : t("app.enable")}">
+              <div class="flex items-center gap-3">
+                <label class="relative inline-block w-10 h-5 mr-1" title="${plugin.enabled ? t("app.disable") : t("app.enable")}">
                    <input 
                       type="checkbox" 
+                      class="opacity-0 w-0 h-0"
                       ?checked=${plugin.enabled}
                       @change=${(e: Event) => this.handleToggle(plugin.id || plugin.name, (e.target as HTMLInputElement).checked)}
                    >
-                   <span class="slider"></span>
+                   <span class="slider absolute cursor-pointer inset-0 bg-border transition-all duration-400 rounded-[20px] checked:bg-success"></span>
                 </label>
                 
                 <button 
-                  class="btn-icon" 
+                  class="bg-transparent border border-border p-2 cursor-pointer rounded-md flex items-center justify-center text-primary transition-all duration-200 hover:bg-hover hover:border-primary hover:text-primary" 
                   @click=${() => this.handleOpenPluginFolder(plugin.id || plugin.name)}
                   title="${t("app.openPluginFolder")}"
                 >
@@ -304,7 +164,7 @@ export class PluginList extends LitElement {
                 </button>
                 
                 <button
-                  class="btn-icon danger"
+                  class="bg-transparent border border-border p-2 cursor-pointer rounded-md flex items-center justify-center text-primary transition-all duration-200 hover:bg-danger-muted hover:border-danger hover:text-danger"
                   @click=${() => this.handleRemove((plugin).id || plugin.name)}
                   title="${t("app.uninstall")}"
                 >

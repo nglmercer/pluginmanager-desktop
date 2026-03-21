@@ -1,6 +1,42 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
+
+@theme {
+  /* Colors - Mapping to existing CSS variables from ThemeManager */
+  --color-primary: var(--primary-color);
+  --color-primary-hover: var(--primary-hover);
+  --color-primary-muted: var(--primary-muted);
+
+  --color-danger: var(--danger-color);
+  --color-danger-muted: var(--danger-muted);
+  --color-success: var(--success-color);
+  --color-success-muted: var(--success-muted);
+  --color-warning: var(--warning-color);
+  --color-warning-muted: var(--warning-muted);
+  --color-info: var(--info-color);
+  --color-info-muted: var(--info-muted);
+
+  --color-background: var(--bg-color);
+  --color-card: var(--card-bg);
+  --color-input: var(--input-bg);
+  --color-hover: var(--hover-bg);
+  --color-active: var(--active-bg);
+
+  --color-border: var(--border-color);
+  --color-border-hover: var(--border-hover);
+  --color-border-active: var(--border-active);
+
+  --color-text-primary: var(--text-color);
+  --color-text-muted: var(--text-muted);
+  --color-text-disabled: var(--text-disabled);
+
+  --color-shadow: var(--shadow-color);
+  --color-shadow-strong: var(--shadow-color-strong);
+  
+  --color-overlay: var(--overlay-bg);
+
+  /* Shadows */
+  --shadow-2xl: 0 25px 50px -12px var(--shadow-color-strong);
+}
 
 * {
   box-sizing: border-box;

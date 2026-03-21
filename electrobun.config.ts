@@ -20,7 +20,7 @@ export default {
 		},
 		copy: {
 			"src/mainview/index.html": "views/mainview/index.html",
-			"src/mainview/index.css": "views/mainview/index.css",
+			"src/mainview/index.compiled.css": "views/mainview/index.compiled.css",
 			"src/mainview/index.ts": "views/mainview/index.ts",
 			"src/assets": "views/assets",
 			"src/shared": "views/shared",

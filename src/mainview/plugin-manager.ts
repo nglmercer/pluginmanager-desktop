@@ -1,4 +1,4 @@
-import { LitElement, html, css } from "lit";
+import { LitElement, html } from "lit";
 import { customElement, state, query } from "lit/decorators.js";
 import { translate as t } from "lit-i18n";
 import { i18next } from "./i18n.js";
@@ -9,7 +9,7 @@ import type { PluginInfo, RemoveResult } from "./types.js";
 import { SettingsModal } from "./components/settings-modal.js";
 
 // Import theme system
-import { getThemeManager, baseStyles, APP_ICON, SETTINGS_ICON } from "./styles/index.js";
+import { getThemeManager, baseStyles, tailwindStyles, APP_ICON, SETTINGS_ICON } from "./styles/index.js";
 
 // Register the child components
 import "./components/plugin-list.js";
@@ -22,61 +22,8 @@ import "./components/settings-modal.js";
 @customElement("plugin-manager")
 export class PluginManager extends LitElement {
   static styles = [
+    tailwindStyles,
     baseStyles,
-    css`
-    @tailwind base;
-    @tailwind components;
-    @tailwind utilities;
-
-    .plugin-manager {
-      padding: 20px;
-      max-width: 800px;
-      margin: 0 auto;
-    }
-
-    h2 {
-      color: var(--text-color);
-      margin-bottom: 20px;
-      font-size: 1.5rem;
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-
-    .message {
-      padding: 10px;
-      border-radius: 6px;
-      margin-bottom: 15px;
-    }
-
-    .error {
-      color: var(--danger-color);
-      background: var(--danger-muted);
-    }
-
-    .success {
-      color: var(--success-color);
-      background: var(--success-muted);
-    }
-
-    .settings-btn {
-      margin-left: auto;
-      background: transparent;
-      border: 1px solid var(--border-color);
-      padding: 8px;
-      cursor: pointer;
-      border-radius: 6px;
-      transition: background 0.2s;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: var(--text-color);
-    }
-
-    .settings-btn:hover {
-      background: var(--hover-bg);
-    }
-  `
   ];
 
   @state() private plugins: PluginInfo[] = [];
@@ -159,12 +106,12 @@ export class PluginManager extends LitElement {
 
   render() {
     return html`
-      <div class="plugin-manager">
-        <h2>
+      <div class="p-5 max-w-[800px] mx-auto">
+        <h2 class="text-primary mb-5 text-[1.5rem] flex items-center gap-[10px]">
           ${APP_ICON}
           ${t("app.title")}
           <button
-            class="settings-btn"
+            class="ml-auto bg-transparent border border-border p-2 cursor-pointer rounded-md transition-colors flex items-center justify-center text-primary hover:bg-hover"
             @click=${this.openSettings}
             title="${t("app.settings")}"
           >
@@ -172,9 +119,9 @@ export class PluginManager extends LitElement {
           </button>
         </h2>
 
-        ${this.error ? html`<div class="message error">${this.error}</div>` : ""}
+        ${this.error ? html`<div class="p-[10px] rounded-md mb-[15px] text-danger bg-danger-muted">${this.error}</div>` : ""}
         ${this.success
-          ? html`<div class="message success">${this.success}</div>`
+          ? html`<div class="p-[10px] rounded-md mb-[15px] text-success bg-success-muted">${this.success}</div>`
           : ""}
 
         <plugin-list

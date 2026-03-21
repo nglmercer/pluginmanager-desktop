@@ -1,6 +1,6 @@
 import { LitElement, html, css } from "lit";
 import { customElement, state, query } from "lit/decorators.js";
-import { baseStyles } from "../styles/index.js";
+import { baseStyles, tailwindStyles } from "../styles/index.js";
 
 /**
  * Custom Dialog Component
@@ -9,77 +9,39 @@ import { baseStyles } from "../styles/index.js";
 @customElement("custom-dialog")
 export class CustomDialog extends LitElement {
   static styles = [
+    tailwindStyles,
     baseStyles,
     css`
-      @tailwind base;
-      @tailwind components;
-      @tailwind utilities;
-
-      dialog {
-        background: var(--card-bg);
-        border: 1px solid var(--border-color);
-        border-radius: 12px;
-        color: var(--text-color);
-        padding: 0;
-        width: 90%;
-        max-width: 400px;
-        box-shadow: 0 10px 25px var(--shadow-color-strong);
-        margin: auto;
-        overflow: hidden;
-      }
-
       dialog::backdrop {
         background: var(--overlay-bg);
-        backdrop-filter: blur(4px);
+        backdrop-filter: blur(8px);
+        animation: backdrop-fade-in 0.3s ease-out;
       }
 
-      .dialog-header {
-        padding: 15px 20px;
-        border-bottom: 1px solid var(--border-color);
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
+      @keyframes backdrop-fade-in {
+        from { opacity: 0; }
+        to { opacity: 1; }
       }
 
-      .dialog-header h3 {
-        margin: 0;
-        font-size: 1.1rem;
-        color: var(--text-color);
+      dialog[open] {
+        animation: dialog-slide-up 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
       }
 
-      .dialog-content {
-        padding: 20px;
+      @keyframes dialog-slide-up {
+        from {
+          opacity: 0;
+          transform: translateY(20px) scale(0.95);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0) scale(1);
+        }
       }
 
-      .dialog-message {
-        margin-bottom: 20px;
-        line-height: 1.5;
-        color: var(--text-color);
-      }
-
-      .dialog-footer {
-        padding: 15px 20px;
-        border-top: 1px solid var(--border-color);
-        display: flex;
-        justify-content: flex-end;
-        gap: 10px;
-        background: var(--bg-color);
-      }
-
-      input {
-        width: 100%;
-        margin-top: 10px;
-      }
-
-      .btn-cancel {
-        background: transparent;
-        border: 1px solid var(--border-color);
-        color: var(--text-muted);
-      }
-
-      .btn-cancel:hover {
-        background: var(--hover-bg);
-        color: var(--text-color);
+      /* Custom input focus ring since global styles might be limited */
+      input:focus {
+        outline: none;
+        box-shadow: 0 0 0 2px var(--primary-color);
       }
     `,
   ];
@@ -165,33 +127,50 @@ export class CustomDialog extends LitElement {
 
   render() {
     return html`
-      <dialog @cancel=${this.handleCancel}>
-        <div class="dialog-header">
-          <h3>${this.dialogTitle}</h3>
+      <dialog 
+        class="bg-card/80 backdrop-blur-md border border-border rounded-2xl text-primary p-0 w-[90%] max-w-[400px] shadow-[0_20px_50px_rgba(0,0,0,0.3)] m-auto overflow-hidden ring-1 ring-white/10"
+        @cancel=${this.handleCancel}
+      >
+        <div class="px-6 py-4 border-b border-border/50 flex justify-between items-center bg-white/5">
+          <h3 class="m-0 text-lg font-semibold tracking-tight text-primary">${this.dialogTitle}</h3>
         </div>
-        <div class="dialog-content">
-          <div class="dialog-message">${this.message}</div>
+        
+        <div class="px-6 py-6">
+          <div class="text-[15px] leading-relaxed text-muted mb-4">${this.message}</div>
+          
           ${this.type === "prompt"
             ? html`
-                <input
-                  type="text"
-                  .value=${this.value}
-                  .placeholder=${this.placeholder}
-                  @input=${this.handleInput}
-                  @keydown=${this.handleKeyDown}
-                />
+                <div class="relative group">
+                  <input
+                    type="text"
+                    class="w-full bg-input border border-border rounded-xl px-4 py-3 text-primary transition-all duration-200 group-hover:border-primary/50 focus:border-primary focus:bg-background"
+                    .value=${this.value}
+                    .placeholder=${this.placeholder}
+                    @input=${this.handleInput}
+                    @keydown=${this.handleKeyDown}
+                    spellcheck="false"
+                  />
+                  <div class="absolute inset-0 rounded-xl pointer-events-none transition-opacity opacity-0 group-focus-within:opacity-100 ring-2 ring-primary/20"></div>
+                </div>
               `
             : ""}
         </div>
-        <div class="dialog-footer">
+
+        <div class="px-6 py-4 border-t border-border/50 flex justify-end gap-3 bg-black/10">
           ${this.type !== "alert"
             ? html`
-                <button class="btn-cancel" @click=${this.handleCancel}>
+                <button 
+                  class="flex-1 sm:flex-none px-6 py-2.5 rounded-xl border border-border text-muted font-medium transition-all duration-200 hover:bg-hover hover:text-primary active:scale-95" 
+                  @click=${this.handleCancel}
+                >
                   Cancel
                 </button>
               `
             : ""}
-          <button class="btn-primary" @click=${this.handleConfirm}>
+          <button 
+            class="flex-1 sm:flex-none px-8 py-2.5 rounded-xl bg-primary text-white font-semibold shadow-lg shadow-primary/20 transition-all duration-200 hover:brightness-110 active:scale-95 disabled:opacity-50" 
+            @click=${this.handleConfirm}
+          >
             ${this.type === "alert" ? "OK" : "Confirm"}
           </button>
         </div>

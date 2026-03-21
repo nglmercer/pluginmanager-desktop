@@ -4,9 +4,10 @@
 	"version": "0.0.1",
 	"type": "module",
 	"scripts": {
-		"start": "electrobun dev",
-		"dev": "electrobun dev --watch",
-		"build:canary": "electrobun build --env=canary"
+		"build:styles": "bun scripts/build-styles.ts",
+		"start": "bun run build:styles && electrobun dev",
+		"dev": "bun run build:styles && electrobun dev --watch",
+		"build:canary": "bun run build:styles && electrobun build --env=canary"
 	},
 	"dependencies": {
 		"bun_plugins": "^1.2.7",

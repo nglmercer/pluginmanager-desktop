@@ -5,7 +5,7 @@ export type { ThemeMode, ThemeName, ThemeColors, ThemeDefinition, CSSVariableMap
 export { darkTheme, lightTheme, getThemeByName, registerTheme, getRegisteredThemes } from "./colors.js";
 
 // CSS
-export { generateCSSVariables, generateThemeCSS, getCSSVariableName, getAllCSSVariableNames, baseStyles } from "./css.js";
+export { generateCSSVariables, generateThemeCSS, getCSSVariableName, getAllCSSVariableNames, baseStyles, tailwindStyles } from "./css.js";
 
 // Manager
 export { ThemeManager, getThemeManager } from "./manager.js";
