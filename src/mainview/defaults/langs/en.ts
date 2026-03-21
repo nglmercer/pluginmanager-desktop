@@ -1,8 +1,14 @@
+//translations
+//app.directories
+//app.tabRules
+//app.tabPlugins
+
 export const en = {
       "app": {
         "title": "Plugin Manager",
         "toggleTheme": "Toggle theme",
         "manualManagement": "Manual Plugin Management",
+        "directories": "Directories",
         "dragDropNotice": "Drag and Drop your plugin folders into the plugins directory. The system will automatically detect and load them.",
         "openPluginsFolder": "Open Plugins Folder",
         "openRulesFolder": "Open Rules Folder",
@@ -21,7 +27,9 @@ export const en = {
         "theme": "Theme",
         "themeLight": "Light",
         "themeDark": "Dark",
-        "close": "Close"
+        "close": "Close",
+        "tabRules": "Rules tab",
+        "tabPlugins": "Plugins tab"
       },
       "tab":{
         "plugins": "Plugins",

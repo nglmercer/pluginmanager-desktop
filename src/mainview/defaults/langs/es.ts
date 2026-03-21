@@ -1,8 +1,14 @@
+//translations
+//app.directories
+//app.tabRules
+//app.tabPlugins
+
 export const es = {
       "app": {
         "title": "Gestor de Plugins",
         "toggleTheme": "Cambiar tema",
         "manualManagement": "Gestión Manual de Plugins",
+        "directories": "Directorios",
         "dragDropNotice": "Arrastra y suelta tus carpetas de plugins en el directorio de plugins. El sistema los detectará y cargará automáticamente.",
         "openPluginsFolder": "Abrir Carpeta de Plugins",
         "openRulesFolder": "Abrir Carpeta de Reglas",
@@ -21,7 +27,9 @@ export const es = {
         "theme": "Tema",
         "themeLight": "Claro",
         "themeDark": "Oscuro",
-        "close": "Cerrar"
+        "close": "Cerrar",
+        "tabRules": "Pestaña de reglas",
+        "tabPlugins": "Pestaña de plugins"
       },
       "tab":{
         "plugins": "Plugins",
