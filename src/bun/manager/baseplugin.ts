@@ -16,6 +16,10 @@ export class BasePluginManager extends PluginManager {
   public actionRegistryPlugin: ActionRegistryPlugin | null = null;
   public pluginsDir = join(getBaseDir(), PATHS.PLUGINS_DIR);
   public rulesDir = join(getBaseDir(), PATHS.RULES_DIR);
+  
+  // Track all discovered plugins' metadata and disabled names
+  public discoveredPluginsMetadata: Map<string, {name: string, version: string, description: string}> = new Map();
+  public disabledPluginNames: Set<string> = new Set();
 
   constructor() {
     super(undefined, {
@@ -70,7 +74,30 @@ export class BasePluginManager extends PluginManager {
     this.alreadyLoaded = true;
     await ensureDir(this.pluginsDir);
     await this.loadPluginsFromDirectory(this.pluginsDir);
+    
+    // Capture metadata for all discovered plugins
+    this.updateDiscoveredPluginsMetadata();
+    
     return this.listPlugins();
+  }
+
+  /**
+   * Update the internal registry of discovered plugins
+   */
+  private updateDiscoveredPluginsMetadata() {
+    const activePlugins = this.listPlugins();
+    for (const name of activePlugins) {
+      if (name === PLUGIN_NAMES.ACTION_REGISTRY) continue;
+      
+      const plugin = this.getPlugin(name);
+      if (plugin && !this.discoveredPluginsMetadata.has(name)) {
+        this.discoveredPluginsMetadata.set(name, {
+          name: plugin.name,
+          version: plugin.version,
+          description: plugin.description || ""
+        });
+      }
+    }
   }
 
   /**
@@ -81,11 +108,26 @@ export class BasePluginManager extends PluginManager {
   public async togglePlugin(pluginName: string, enabled: boolean): Promise<void> {
     console.log(`[PluginManager] Toggling plugin ${pluginName}: ${enabled}`);
     if (enabled) {
-      // For enabling, we attempt to reload it (or load if first time)
+      // For enabling, we attempt to re-enable it
       await this.enablePlugin(pluginName);
+      this.disabledPluginNames.delete(pluginName);
+      
+      // Update metadata in case it's the first time it's being properly enabled
+      this.updateDiscoveredPluginsMetadata();
     } else {
+      // Store metadata before disabling if we don't have it yet
+      const plugin = this.getPlugin(pluginName);
+      if (plugin) {
+        this.discoveredPluginsMetadata.set(pluginName, {
+          name: plugin.name,
+          version: plugin.version,
+          description: plugin.description || ""
+        });
+      }
+      
       // For disabling, we unregister it from the manager
       await this.disablePlugin(pluginName);
+      this.disabledPluginNames.add(pluginName);
     }
   }
 }

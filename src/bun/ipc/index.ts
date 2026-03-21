@@ -68,21 +68,33 @@ export class IpcHandler {
         requests: {
           // ===== Plugin Management API =====
 
-          // Get all loaded plugins
+          // Get all loaded and tracked plugins
           getPlugins: (): PluginInfo[] => {
             if (!this.manager) return [];
-            // filter core plugin or default plugins
-            const pluginsInfo = this.manager.getPluginStatus();
-            const pluginInfo = Object.entries(pluginsInfo).map(([key, value]) => ({
-              id: key,
-              name: value.name || key,
-              version: value.version,
-              status: value.status,
-              enabled: value.enabled || value.status === 'active',
-              description: value.description,
-            }));
-            const filteredPlugins = pluginInfo.filter((plugin) => plugin.id !== PLUGIN_NAMES.ACTION_REGISTRY);
-            console.log(pluginInfo,filteredPlugins)
+            
+            const listPlugins = this.manager.listPlugins();
+            const disabledPlugins = Array.from(this.manager.disabledPluginNames);
+            const allPluginNames = Array.from(new Set([...listPlugins, ...disabledPlugins]));
+            
+            const pluginInfos = allPluginNames.map((name): PluginInfo | null => {
+              if (name === PLUGIN_NAMES.ACTION_REGISTRY) return null;
+              
+              const plugin = this.manager?.getPlugin(name);
+              const metadata = this.manager?.discoveredPluginsMetadata.get(name);
+              
+              if (!plugin && !metadata) return null;
+              
+              return {
+                id: name,
+                name: plugin?.name || metadata?.name || name,
+                version: plugin?.version || metadata?.version || "0.0.0",
+                enabled: (this.manager?.getPluginStatus()[name] && !this.manager?.disabledPluginNames.has(name)) ? true : false,
+                description: plugin?.description || metadata?.description || "",
+              } as PluginInfo;
+            });
+            
+            const filteredPlugins = pluginInfos.filter((p): p is PluginInfo => p !== null);
+            console.log("[IPC] GetPlugins:", filteredPlugins);
             return filteredPlugins;
           },
 
@@ -94,10 +106,13 @@ export class IpcHandler {
             }
             try {
               const plugin = this.manager.getPlugin(pluginId);
+              const isDisabled = this.manager.disabledPluginNames.has(pluginId);
+              const isDiscovered = this.manager.discoveredPluginsMetadata.has(pluginId);
+              
               return {
                 id: pluginId,
-                loaded: !!plugin,
-                enabled: true,
+                loaded: !!plugin || isDiscovered,
+                enabled: !!plugin && !isDisabled,
               };
             } catch (error) {
               return {
