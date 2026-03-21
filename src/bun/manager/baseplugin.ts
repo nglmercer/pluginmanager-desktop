@@ -1,6 +1,7 @@
 import { PluginManager } from "bun_plugins";
-import { RuleEngine } from "trigger_system/node";
+import { RuleEngine, RuleRegistry, RulePersistence } from "trigger_system/node";
 import { join } from "node:path";
+import * as fs from "node:fs/promises";
 import { actionRegistryPlugin, ActionRegistryPlugin } from "./Register";
 import { ensureDir, getBaseDir } from "../utils/filepath";
 import { PLUGIN_NAMES, PATHS } from "../constants";
@@ -12,6 +13,7 @@ import { helpers } from "./defaults/helpers";
  */
 export class BasePluginManager extends PluginManager {
   public engine: RuleEngine;
+  public registry: RuleRegistry;
   public alreadyLoaded: boolean = false;
   public actionRegistryPlugin: ActionRegistryPlugin | null = null;
   public pluginsDir = join(getBaseDir(), PATHS.PLUGINS_DIR);
@@ -27,6 +29,8 @@ export class BasePluginManager extends PluginManager {
     });
     // Inicializar el motor de reglas
     this.engine = new RuleEngine({ rules: [], globalSettings: { debugMode: true } });
+    this.registry = new RuleRegistry();
+    this.registry.setDefaultDir(this.rulesDir);
     
     // Ensure directories exist
     ensureDir(this.pluginsDir);
@@ -129,5 +133,44 @@ export class BasePluginManager extends PluginManager {
       await this.disablePlugin(pluginName);
       this.disabledPluginNames.add(pluginName);
     }
+  }
+
+  /**
+   * Load rules from the rules directory into the registry and engine
+   */
+  public async loadRules(): Promise<void> {
+    console.log(`[PluginManager] Loading rules from ${this.rulesDir}`);
+    try {
+      this.registry.clear();
+      
+      const files = await fs.readdir(this.rulesDir);
+      const yamlFiles = files.filter(f => f.endsWith('.yaml') || f.endsWith('.yml'));
+      
+      for (const file of yamlFiles) {
+        const filePath = join(this.rulesDir, file);
+        try {
+          const rules = await RulePersistence.loadFile(filePath);
+          if (rules.length > 0) {
+            this.registry.registerAll(rules, filePath);
+            console.log(`[PluginManager] Loaded ${rules.length} rules from ${file}`);
+          }
+        } catch (error) {
+          console.error(`[PluginManager] Failed to load rules from ${file}:`, error);
+        }
+      }
+      
+      this.updateEngineFromRegistry();
+    } catch (error) {
+      console.error(`[PluginManager] Failed to read rules directory:`, error);
+    }
+  }
+
+  /**
+   * Sync the engine with the registry rules
+   */
+  public updateEngineFromRegistry(): void {
+    const rules = this.registry.getAll();
+    this.engine.updateRules(rules);
+    console.log(`[PluginManager] Updated engine with ${rules.length} rules from registry`);
   }
 }

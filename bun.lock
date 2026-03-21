@@ -12,7 +12,7 @@
         "lit": "^3.3.2",
         "lit-i18n": "^4.1.0",
         "string-dac": "^1.0.0",
-        "trigger_system": "^1.2.5",
+        "trigger_system": "^1.2.6",
       },
       "devDependencies": {
         "@tailwindcss/cli": "^4.2.2",
@@ -308,7 +308,7 @@
 
     "three": ["three@0.165.0", "", {}, "sha512-cc96IlVYGydeceu0e5xq70H8/yoVT/tXBxV/W8A/U6uOq7DXc4/s1Mkmnu6SqoYGhSRWWYFOhVwvq6V0VtbplA=="],
 
-    "trigger_system": ["trigger_system@1.2.5", "", { "dependencies": { "arktype": "^2.1.29", "yaml": "^2.8.2" }, "peerDependencies": { "typescript": "^5" } }, "sha512-lTlyIKyhi6VivASNj0J3xws3Oqy5x7sRQT0AjaJ5a/cjenISMOFzYK7fYXQEp18N/dkDUiS0XcTmXNYeUgmYiA=="],
+    "trigger_system": ["trigger_system@1.2.6", "", { "dependencies": { "arktype": "^2.1.29", "yaml": "^2.8.2" }, "peerDependencies": { "typescript": "^5" } }, "sha512-zZViQP8BcXFJ1UkaCPMZibGLFf4X3uzddUjR6g6U4xO70B6vVq9WSirJs4PErDc2ewwkd5T+R6WGR1/ttxySCQ=="],
 
     "typescript": ["typescript@5.9.3", "", { "bin": { "tsc": "bin/tsc", "tsserver": "bin/tsserver" } }, "sha512-jl1vZzPDinLr9eUt3J/t7V6FgNEw9QjvBPdysz9KfQDD41fQrC2Y4vKQdiaUpFT4bXlb1RHhLpp8wtm6M5TgSw=="],
 

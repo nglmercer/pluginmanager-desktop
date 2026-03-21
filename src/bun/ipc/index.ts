@@ -4,7 +4,6 @@ import { PLATFORMS } from "../constants";
 import { pluginAPI } from "../manager/plugin-api";
 import { rulesAPI } from "../manager/rules-api";
 import { PLUGIN_NAMES } from "../constants";
-import * as path from "path";
 import { RulePersistence } from "trigger_system/node";
 import type { PluginManagerRPC, PluginInfo, PluginStatus, RuleInfo, WindowStatus } from "../../shared/types";
 import type { TriggerRule } from "trigger_system/node";
@@ -153,16 +152,17 @@ export class IpcHandler {
           // Get all rules
           getRules: (): RuleInfo[] => {
             if (!this.manager) return [];
-            const rules = this.manager.engine.getRules();
-            // Map TriggerRule to RuleInfo with full metadata
-            return rules.map((rule: any): RuleInfo => ({
-              id: rule.id,
+            const rules = this.manager.registry.getAll();
+            // Map TriggerRule to RuleInfo with full metadata and file path
+            return rules.map((rule: TriggerRule): RuleInfo => ({
+              id: rule.id!,
               name: rule.name,
               description: rule.description,
               platform: rule.on || "unknown",
               enabled: rule.enabled ?? true,
               priority: rule.priority,
               tags: rule.tags,
+              filePath: this.manager?.registry.getFilePath(rule.id!),
             }));
           },
 
@@ -208,27 +208,79 @@ export class IpcHandler {
 
           // Load rules from directory
           loadRulesFromDir: (params: RPCRequests['loadRulesFromDir']['params']) => {
-            return this.handleAsync(rulesAPI.loadRulesFromDir(params.dirPath));
+            return this.handleAsync((async () => {
+              if (this.manager && params.dirPath === this.manager.getRulesDir()) {
+                await this.manager.loadRules();
+                return this.manager.registry.getAll();
+              }
+              return rulesAPI.loadRulesFromDir(params.dirPath);
+            })());
           },
 
           // Load rules from file
           loadRulesFromFile: (params: RPCRequests['loadRulesFromFile']['params']) => {
-            return this.handleAsync(rulesAPI.loadRulesFromFile(params.filePath));
+            return this.handleAsync((async () => {
+              const rules = await RulePersistence.loadFile(params.filePath);
+              if (this.manager && rules.length > 0) {
+                this.manager.registry.registerAll(rules, params.filePath);
+                this.manager.updateEngineFromRegistry();
+              }
+              return rules;
+            })());
           },
 
           // Save a rule
           saveRule: (params: RPCRequests['saveRule']['params']) => {
-            return this.handleAsync(rulesAPI.saveRule(params.rule, params.filePath));
+            return this.handleAsync((async () => {
+              const { rule, filePath } = params;
+              if (this.manager) {
+                const registry = this.manager.registry;
+                registry.register(rule, filePath);
+                
+                // Workaround: ensure the updated/new rule is accurately reflected in the file's rule list
+                const rulesInFile = registry.getRulesByFile(filePath);
+                const finalRules = rulesInFile.some(r => r.id === rule.id)
+                  ? rulesInFile.map(r => r.id === rule.id ? rule : r)
+                  : [...rulesInFile, rule];
+                  
+                await RulePersistence.saveRulesToFile(finalRules, filePath);
+                registry.markFileAsSaved(filePath);
+                
+                this.manager.updateEngineFromRegistry();
+              } else {
+                await RulePersistence.saveRule(rule, filePath);
+              }
+            })());
           },
 
           // Save all rules
           saveAllRules: (params: RPCRequests['saveAllRules']['params']) => {
-            return this.handleAsync(rulesAPI.saveAllRules(params.rules, params.baseDir));
+            return this.handleAsync((async () => {
+              // Standard saveAll might overwrite everything
+              const results = await rulesAPI.saveAllRules(params.rules, params.baseDir);
+              if (this.manager) {
+                // We don't have exact file mapping here from the results easily,
+                // but we can at least try to refresh the registry
+                await this.manager.loadRules();
+              }
+              return results;
+            })());
           },
 
-          // Delete a rule
+          // Delete a rule file
           deleteRule: (params: RPCRequests['deleteRule']['params']) => {
-            return this.handleAsync(rulesAPI.deleteRule(params.filePath));
+            return this.handleAsync((async () => {
+              const deleted = await rulesAPI.deleteRule(params.filePath);
+              if (deleted && this.manager) {
+                // Remove all rules associated with this file from registry
+                const rulesInFile = this.manager.registry.getRulesByFile(params.filePath);
+                for (const rule of rulesInFile) {
+                  this.manager.registry.remove(rule.id!);
+                }
+                this.manager.updateEngineFromRegistry();
+              }
+              return deleted;
+            })());
           },
 
           // Check if rule file exists
@@ -255,52 +307,78 @@ export class IpcHandler {
           },
 
           // Toggle rule enabled state
-          toggleRule: async (params: RPCRequests['toggleRule']['params']): Promise<boolean> => {
-            if (!this.manager) return false;
-            try {
-              const rulesDir = pluginAPI.getRulesDir();
-              const filePath = path.join(rulesDir, `${params.ruleId}.yaml`);
-              // Load the rule file
-              const rules = await RulePersistence.loadFile(filePath);
-              const rule = rules.find((r: TriggerRule) => r.id === params.ruleId);
+          toggleRule: (params: RPCRequests['toggleRule']['params']) => {
+            return this.handleAsync((async () => {
+              if (!this.manager) return false;
+              const ruleId = params.ruleId;
+              const registry = this.manager.registry;
+              
+              const rule = registry.get(ruleId);
               if (!rule) {
-                console.error(`[IPC] Rule not found: ${params.ruleId}`);
+                console.error(`[IPC] Rule not found in registry: ${ruleId}`);
                 return false;
               }
-              // Update enabled state
-              rule.enabled = params.enabled;
-              // Save back to file
-              await RulePersistence.saveRule(rule, filePath);
-              // Update engine with the modified rule
-              this.manager.engine.updateRules([rule]);
-              console.log(`[IPC] Toggled rule ${params.ruleId} to ${params.enabled}`);
+
+              const filePath = registry.getFilePath(ruleId);
+              if (!filePath) {
+                console.error(`[IPC] Could not find file path for rule: ${ruleId}`);
+                return false;
+              }
+
+              // Update enabled state in memory (registry)
+              const updated = registry.update(ruleId, { enabled: params.enabled });
+              
+              // Workaround: map the updated rule back into the file's rule list to ensure latest data is saved
+              const rulesInFile = registry.getRulesByFile(filePath).map(r => r.id === ruleId ? updated : r);
+              await RulePersistence.saveRulesToFile(rulesInFile, filePath);
+              registry.markFileAsSaved(filePath);
+              
+              // Update engine
+              this.manager.updateEngineFromRegistry();
+              
+              console.log(`[IPC] Toggled rule ${ruleId} to ${params.enabled} and saved ${filePath}`);
               return true;
-            } catch (error) {
-              console.error("[IPC] Failed to toggle rule:", error);
-              return false;
-            }
+            })());
           },
 
           // Delete rule by ID
-          deleteRuleById: async (params: RPCRequests['deleteRuleById']['params']): Promise<boolean> => {
-            if (!this.manager) return false;
-            try {
-              const rulesDir = pluginAPI.getRulesDir();
-              const filePath = path.join(rulesDir, `${params.ruleId}.yaml`);
-              // Delete the file
-              const deleted = await RulePersistence.deleteFile(filePath);
-              if (deleted) {
-                // Remove from engine
-                const currentRules = this.manager.engine.getRules();
-                const remaining = currentRules.filter((r: TriggerRule) => r.id !== params.ruleId);
-                this.manager.engine.updateRules(remaining);
-                console.log(`[IPC] Deleted rule ${params.ruleId}`);
+          deleteRuleById: (params: RPCRequests['deleteRuleById']['params']) => {
+            return this.handleAsync((async () => {
+              if (!this.manager) return false;
+              const ruleId = params.ruleId;
+              const registry = this.manager.registry;
+              const filePath = registry.getFilePath(ruleId);
+              
+              if (!filePath) {
+                console.error(`[IPC] Rule not found or file path unknown: ${ruleId}`);
+                return false;
               }
-              return deleted;
-            } catch (error) {
-              console.error("[IPC] Failed to delete rule:", error);
-              return false;
-            }
+
+              console.log(`[IPC] Attempting to remove rule ${ruleId} from registry`);
+              // Remove from registry
+              const removed = registry.remove(ruleId);
+              if (removed) {
+                // Workaround for library inconsistency: manually filter rules to ensure it's removed from file list
+                const remainingRules = registry.getRulesByFile(filePath).filter(r => r.id !== ruleId);
+                console.log(`[IPC] Remaining rules in ${filePath} (after filtering): ${remainingRules.length} (${remainingRules.map(r => r.id).join(', ')})`);
+                
+                if (remainingRules.length > 0) {
+                  // If there are other rules in the same file, update the file
+                  await RulePersistence.saveRulesToFile(remainingRules, filePath);
+                  registry.markFileAsSaved(filePath);
+                  console.log(`[IPC] Removed rule ${ruleId} from file, kept ${remainingRules.length} rules`);
+                } else {
+                  // If it was the last rule in the file, delete the file
+                  await RulePersistence.deleteFile(filePath);
+                  console.log(`[IPC] Deleted file ${filePath} because it had no more rules`);
+                }
+                
+                this.manager.updateEngineFromRegistry();
+              } else {
+                console.warn(`[IPC] Registry.remove(${ruleId}) returned false`);
+              }
+              return removed;
+            })());
           },
 
           // Open a specific plugin folder

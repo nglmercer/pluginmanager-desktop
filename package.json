@@ -17,7 +17,7 @@
     "lit": "^3.3.2",
     "lit-i18n": "^4.1.0",
     "string-dac": "^1.0.0",
-    "trigger_system": "^1.2.5"
+    "trigger_system": "^1.2.6"
   },
   "devDependencies": {
     "@tailwindcss/cli": "^4.2.2",

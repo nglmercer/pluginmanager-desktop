@@ -84,6 +84,7 @@ export interface RuleInfo {
   enabled: boolean;
   priority?: number;
   tags?: string[];
+  filePath?: string;
 }
 
 /**
