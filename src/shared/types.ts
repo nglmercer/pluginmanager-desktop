@@ -21,6 +21,7 @@ export type PluginManagerRPC = {
       closeWindow: { params: {}; response: boolean };
       getWindowStatus: { params: {}; response: WindowStatus };
       openRulesFolder: { params: {}; response: AsyncResponseWrapper<string> };
+      openPluginFolder: { params: { pluginName: string }; response: AsyncResponseWrapper<boolean> };
     };
     messages: {};
   }>;
@@ -47,6 +48,7 @@ export interface PluginInfo {
   name: string;
   version: string;
   enabled: boolean;
+  description?: string;
 }
 
 /**

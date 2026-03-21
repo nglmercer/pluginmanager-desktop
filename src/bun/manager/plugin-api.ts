@@ -20,6 +20,8 @@ export interface PluginManagerAPI {
   
   // Hot reload
   reloadPlugin: (pluginName: string, manager: BasePluginManager) => Promise<boolean>;
+  togglePlugin: (pluginName: string, enabled: boolean, manager: BasePluginManager) => Promise<boolean>;
+  openPluginFolder: (pluginName: string, manager: BasePluginManager) => Promise<boolean>;
 }
 
 /**
@@ -75,6 +77,35 @@ export const pluginAPI: PluginManagerAPI = {
       console.error(`[PluginAPI] Failed to reload plugin: ${pluginName}`, error);
       return false;
     }
+  },
+  /**
+   * Toggle a specific plugin
+   */
+  togglePlugin: async (pluginName: string, enabled: boolean, manager: BasePluginManager): Promise<boolean> => {
+    try {
+      await manager.togglePlugin(pluginName, enabled);
+      return true;
+    } catch (error) {
+      console.error(`[PluginAPI] Failed to toggle plugin: ${pluginName}`, error);
+      return false;
+    }
+  },
+
+  /**
+   * Open a specific plugin folder
+   */
+  openPluginFolder: async (pluginName: string, manager: BasePluginManager): Promise<boolean> => {
+    const pluginPath = manager.getPluginPath(pluginName);
+    if (!pluginPath) {
+      console.error(`[PluginAPI] Could not find path for plugin: ${pluginName}`);
+      return false;
+    }
+    
+    // We'll return the path and handle the actual opening in the IPC layer 
+    // to keep this API clean from electrobun dependencies if possible, 
+    // OR just use a placeholder if we want to be proactive.
+    // Actually, ipcHandler already uses Utils.
+    return true; // The IPC layer will handle the actual opening using the path
   },
 };
 

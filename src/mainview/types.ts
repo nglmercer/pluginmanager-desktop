@@ -5,6 +5,7 @@ export interface PluginInfo {
   id: string;
   version: string;
   description?: string;
+  enabled: boolean;
 }
 
 export interface RemoveResult {

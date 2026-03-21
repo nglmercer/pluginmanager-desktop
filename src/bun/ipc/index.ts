@@ -79,6 +79,7 @@ export class IpcHandler {
               version: value.version,
               status: value.status,
               enabled: value.enabled || value.status === 'active',
+              description: value.description,
             }));
             const filteredPlugins = pluginInfo.filter((plugin) => plugin.id !== PLUGIN_NAMES.ACTION_REGISTRY);
             console.log(pluginInfo,filteredPlugins)
@@ -176,6 +177,25 @@ export class IpcHandler {
                } catch (e) {
                  console.error("[IPC] Failed to open rules folder:", e);
                  return "";
+               }
+             })());
+          },
+
+          // Open a specific plugin folder
+          openPluginFolder: (params: RPCRequests['openPluginFolder']['params']) => {
+             return this.handleAsync((async () => {
+               if (!this.manager) return false;
+               const pluginPath = this.manager.getPluginPath(params.pluginName);
+               if (!pluginPath) {
+                 console.error(`[IPC] Plugin folder not found: ${params.pluginName}`);
+                 return false;
+               }
+               console.log(`[IPC] Opening plugin folder: ${pluginPath}`);
+               try {
+                 return Utils.showItemInFolder(pluginPath);
+               } catch (e) {
+                 console.error("[IPC] Failed to open plugin folder:", e);
+                 return false;
                }
              })());
           },

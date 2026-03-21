@@ -11,6 +11,10 @@ export class CustomDialog extends LitElement {
   static styles = [
     baseStyles,
     css`
+      @tailwind base;
+      @tailwind components;
+      @tailwind utilities;
+
       dialog {
         background: var(--card-bg);
         border: 1px solid var(--border-color);

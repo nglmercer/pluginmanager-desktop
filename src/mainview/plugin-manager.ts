@@ -24,6 +24,10 @@ export class PluginManager extends LitElement {
   static styles = [
     baseStyles,
     css`
+    @tailwind base;
+    @tailwind components;
+    @tailwind utilities;
+
     .plugin-manager {
       padding: 20px;
       max-width: 800px;

@@ -16,5 +16,11 @@
 		"lit-i18n": "^4.1.0",
 		"string-dac": "^1.0.0",
 		"trigger_system": "^1.2.1"
+	},
+	"devDependencies": {
+		"autoprefixer": "^10.4.27",
+		"postcss": "^8.5.8",
+		"postcss-lit": "^1.4.1",
+		"tailwindcss": "^4.2.2"
 	}
 }

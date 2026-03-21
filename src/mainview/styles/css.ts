@@ -78,6 +78,9 @@ export function getAllCSSVariableNames(): string[] {
  */
 export const baseStyles = css`
   :host {
+    @tailwind base;
+    @tailwind components;
+    @tailwind utilities;
     display: block;
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
       Oxygen, Ubuntu, sans-serif;
