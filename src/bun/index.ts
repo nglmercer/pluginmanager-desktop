@@ -1,10 +1,11 @@
-import { Tray, Utils } from "electrobun/bun";
+import { Tray } from "electrobun/bun";
 import Electrobun from "electrobun/bun";
 import { TrayClickedEvent } from "./index.d";
 import { main } from "./pluginmanager";
 import { ontrayevent, MenuBuilder } from "./constants/tray";
 import { ipcHandler } from "./ipc";
-
+import { ActionRegistryPlugin } from "./manager/Register";
+import { PLATFORMS, PLUGIN_NAMES } from "./constants";
 /**
  * Plugin Manager - Modular Entry Point
  * Uses IPC for plugin communication and modular tray/window management
@@ -53,6 +54,22 @@ main().then((result) => {
 	
 	// Initialize IPC with plugin manager
 	ipcHandler.initialize(result.manager);
+	Object.values(PLATFORMS).forEach((platform) => {
+		result.manager.on(platform, async ({ eventName, data }) => {
+			const registryPlugin = (await result.manager.getPlugin(
+			PLUGIN_NAMES.ACTION_REGISTRY
+			)) as ActionRegistryPlugin;
+			//console.log("Helpers:", registryPlugin);
+			
+			const pluginHelpers = registryPlugin.Helpers;
+			//console.log(pluginHelpers,registryPlugin);
+			if (eventName && data) {
+				result.engine.processEventSimple(eventName, data, pluginHelpers);
+				ipcHandler.broadcastToWebview(eventName, data);
+				ipcHandler.postMessageToWebview({eventName, data});
+			}
+		});
+	});
 	const cleanup = async () => {
 		const allplugins = result.manager.listPlugins();
 		console.log('[cleanup]',allplugins)

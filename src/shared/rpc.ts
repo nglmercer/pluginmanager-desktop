@@ -59,9 +59,18 @@ const rpc = Electroview.defineRPC<PluginManagerRPC>({
 export const electroview = new Electroview({ rpc });
 export const EXPORT_CLICKED = 'TRIGGER_EDITOR_EXPORT_CLICKED';
 // Relay messages from Editor (postMessage) to Bun (RPC)
+declare global {
+  interface Window {
+    // add you custom properties and methods
+    logs?: boolean
+  }
+}
+window.logs = false
+
 window.addEventListener('message', (event) => {
   const { data } = event;
   if (!data || typeof data !== 'object') return;
+  if (window.logs) console.log('[RPC] Message from Editor:', data);
   
   if (data.type === EXPORT_CLICKED) {
     console.log('[RPC] Relaying TRIGGER_EDITOR_EXPORT to Bun');
