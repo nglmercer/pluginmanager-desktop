@@ -57,16 +57,15 @@ const rpc = Electroview.defineRPC<PluginManagerRPC>({
 });
 
 export const electroview = new Electroview({ rpc });
-
+export const EXPORT_CLICKED = 'TRIGGER_EDITOR_EXPORT_CLICKED';
 // Relay messages from Editor (postMessage) to Bun (RPC)
 window.addEventListener('message', (event) => {
   const { data } = event;
   if (!data || typeof data !== 'object') return;
   
-  if (data.type === 'TRIGGER_EDITOR_EXPORT') {
+  if (data.type === EXPORT_CLICKED) {
     console.log('[RPC] Relaying TRIGGER_EDITOR_EXPORT to Bun');
-    // @ts-ignore
-    electroview.rpc.send.editorExported(data.payload);
+    electroview.rpc!.send.editorExported(data.payload);
   }
 });
 
