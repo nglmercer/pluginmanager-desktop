@@ -30,7 +30,7 @@ export class PluginList extends LitElement {
   }
 
   private async handleToggle(pluginName: string, enabled: boolean): Promise<void> {
-    const { invokeRpc } = await import("../defaults/rpc.js");
+    const { invokeRpc } = await import("../../shared/rpc.js");
     try {
       await invokeRpc("togglePlugin", { pluginName, enabled });
     } catch (e) {
@@ -39,7 +39,7 @@ export class PluginList extends LitElement {
   }
 
   private async handleOpenPluginFolder(pluginName: string): Promise<void> {
-    const { invokeRpc } = await import("../defaults/rpc.js");
+    const { invokeRpc } = await import("../../shared/rpc.js");
     try {
       await invokeRpc("openPluginFolder", { pluginName });
     } catch (e) {

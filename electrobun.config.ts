@@ -20,6 +20,9 @@ export default {
 			mainview: {
 				entrypoint: "src/mainview/index.html",
 				plugins: [tailwind],
+			},
+			editor: {
+				entrypoint: "src/shared/rpc.ts",
 			}
 		},
 		copy: {

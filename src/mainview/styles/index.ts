@@ -24,7 +24,8 @@ export {
   CHEVRON_DOWN_ICON,
   INFO_ICON,
   WARNING_ICON,
-  NO_PLUGINS_ICON
+  NO_PLUGINS_ICON,
+  EDIT_ICON
 } from "./icons.js";
 
 // Re-export for convenience

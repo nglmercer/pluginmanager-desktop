@@ -1,7 +1,7 @@
 import { LitElement, html } from "lit";
 import { customElement, state } from "lit/decorators.js";
 import { i18next } from "../defaults/i18n.js";
-import { invokeRpc } from "../defaults/rpc.js";
+import { invokeRpc } from "../../shared/rpc.js";
 import type { RuleInfo } from "../types.js";
 
 // Register child component

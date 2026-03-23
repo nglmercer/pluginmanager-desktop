@@ -1,5 +1,5 @@
 import { Electroview } from "electrobun/view";
-import type { PluginManagerRPC } from "../../shared/types";
+import type { PluginManagerRPC } from "./types";
 
 // Type for async callback resolving
 type Resolver = (data: unknown) => void;
@@ -38,11 +38,37 @@ const rpc = Electroview.defineRPC<PluginManagerRPC>({
         (window as any).alert(message, title);
       },
       windowStateChanged: () => {},
+      
+      // Editor Integration (Bun -> WebView)
+      triggerEditorImport: (data) => {
+        window.dispatchEvent(new CustomEvent("triggerEditorImport", { detail: data }));
+        window.postMessage({ type: 'TRIGGER_EDITOR_IMPORT', ...data }, '*');
+      },
+      triggerEditorRequestExport: () => {
+        window.dispatchEvent(new CustomEvent("triggerEditorRequestExport", { detail: {} }));
+        window.postMessage({ type: 'TRIGGER_EDITOR_REQUEST_EXPORT' }, '*');
+      },
+      triggerEditorClear: () => {
+        window.dispatchEvent(new CustomEvent("triggerEditorClear", { detail: {} }));
+        window.postMessage({ type: 'TRIGGER_EDITOR_CLEAR' }, '*');
+      },
     },
   },
 });
 
 export const electroview = new Electroview({ rpc });
+
+// Relay messages from Editor (postMessage) to Bun (RPC)
+window.addEventListener('message', (event) => {
+  const { data } = event;
+  if (!data || typeof data !== 'object') return;
+  
+  if (data.type === 'TRIGGER_EDITOR_EXPORT') {
+    console.log('[RPC] Relaying TRIGGER_EDITOR_EXPORT to Bun');
+    // @ts-ignore
+    electroview.rpc.send.editorExported(data.payload);
+  }
+});
 
 /**
  * Invokes an RPC method on the Bun side with support for async responses

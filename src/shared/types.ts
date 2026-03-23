@@ -34,8 +34,17 @@ export type PluginManagerRPC = {
       toggleRule: { params: { ruleId: string; enabled: boolean }; response: AsyncResponseWrapper<ActionResult> };
       deleteRuleById: { params: { ruleId: string }; response: AsyncResponseWrapper<ActionResult> };
       updateEngineRules: { params: { rules: TriggerRule[] }; response: AsyncResponseWrapper<boolean> };
+      
+      // ===== Editor Integration API =====
+      editorImport: { params: { format: 'yaml' | 'json'; payload: string | object; filePath?: string }; response: void };
+      setEditorFile: { params: { filePath: string }; response: void };
+      editorRequestExport: { params: {}; response: void };
+      editorClear: { params: {}; response: void };
+      loadRuleInEditor: { params: { filePath: string }; response: AsyncResponseWrapper<void> };
     };
-    messages: {};
+    messages: {
+      editorExported: { yaml: string; json: object; timestamp: string };
+    };
   }>;
   webview: RPCSchema<{
     requests: {};
@@ -48,6 +57,11 @@ export type PluginManagerRPC = {
       pluginUnloaded: { pluginId: string };
       pluginError: { pluginId: string; error: string };
       eventReceived: { platform: string; eventName: string; data: unknown };
+      
+      // Editor Events (Bun -> WebView)
+      triggerEditorImport: { format: 'yaml' | 'json'; payload: string | object };
+      triggerEditorRequestExport: {};
+      triggerEditorClear: {};
     };
   }>;
 };

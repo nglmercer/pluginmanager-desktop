@@ -2,7 +2,7 @@ import { LitElement, html } from "lit";
 import { customElement, query } from "lit/decorators.js";
 import { translate as t } from "lit-i18n";
 import { i18next } from "../defaults/i18n.js";
-import { invokeRpc } from "../defaults/rpc.js";
+import { invokeRpc } from "../../shared/rpc.js";
 import { getThemeManager, CLOSE_ICON, CHEVRON_DOWN_ICON, FOLDER_ICON } from "../styles/index.js";
 
 /**

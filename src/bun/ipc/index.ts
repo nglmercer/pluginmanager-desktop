@@ -7,6 +7,7 @@ import { PLUGIN_NAMES } from "../constants";
 import { RulePersistence } from "trigger_system/node";
 import type { PluginManagerRPC, PluginInfo, PluginStatus, RuleInfo, WindowStatus } from "../../shared/types";
 import type { TriggerRule } from "trigger_system/node";
+import { IPC_EVENTS, EDITOR_MESSAGES } from "../constants";
 
 // This is the type of any RPC handler to help with complex typing
 type RPCRequests = PluginManagerRPC['bun']['requests'];
@@ -16,8 +17,11 @@ type RPCRequests = PluginManagerRPC['bun']['requests'];
  * Manages communication between Bun (plugins) and WebView (UI)
  */
 export class IpcHandler {
-  private window: BrowserWindow | null = null;
+  private windows: Set<BrowserWindow> = new Set();
+  private lastFocusedWindow: BrowserWindow | null = null;
   private manager: BasePluginManager | null = null;
+  private currentEditorFilePath: string | null = null;
+  private editorWindow: BrowserWindow | null = null;
   // Type this as the result of defineRPC, using the full schema
   private rpc: ReturnType<typeof BrowserView.defineRPC<PluginManagerRPC>> | null = null;
 
@@ -34,7 +38,8 @@ export class IpcHandler {
    * Set the browser window for IPC communication
    */
   setWindow(win: BrowserWindow): void {
-    this.window = win;
+    this.windows.add(win);
+    this.lastFocusedWindow = win;
   }
 
   /**
@@ -43,15 +48,19 @@ export class IpcHandler {
   private handleAsync(promise: Promise<unknown>): { type: 'async_id'; id: string } {
     const id = Math.random().toString(36).substring(7);
     promise.then(data => {
-      if (this.window?.webview?.rpc) {
-        // @ts-ignore - electrobun's send method is dynamically typed via template strings
-        this.window.webview.rpc.send.asyncResponse({ id, data });
-      }
+      this.windows.forEach(win => {
+        if (win.webview?.rpc) {
+          // @ts-ignore
+          win.webview.rpc.send.asyncResponse({ id, data });
+        }
+      });
     }).catch(error => {
-      if (this.window?.webview?.rpc) {
-        // @ts-ignore
-        this.window.webview.rpc.send.asyncResponse({ id, error: String(error) });
-      }
+      this.windows.forEach(win => {
+        if (win.webview?.rpc) {
+          // @ts-ignore
+          win.webview.rpc.send.asyncResponse({ id, error: String(error) });
+        }
+      });
     });
     return { type: 'async_id', id };
   }
@@ -404,8 +413,8 @@ export class IpcHandler {
           // Get window status
           getWindowStatus: (): WindowStatus => {
             return {
-              isOpen: this.window !== null,
-              isFocused: this.window !== null,
+              isOpen: this.isWindowOpen(),
+              isFocused: this.lastFocusedWindow !== null,
             };
           },
 
@@ -423,12 +432,111 @@ export class IpcHandler {
              this.closeWindow();
              return true;
           },
+
+          // ===== Editor Integration API =====
+          editorImport: (params: RPCRequests['editorImport']['params']) => {
+            console.log(`[IPC] Editor Import: ${params.format}`);
+            if (params.filePath) {
+              this.currentEditorFilePath = params.filePath;
+            }
+            this.broadcastToWebview(IPC_EVENTS.EDITOR_IMPORT, params);
+            // Also send as window message for the editor's listener
+            this.postMessageToWebview({
+              type: EDITOR_MESSAGES.IMPORT,
+              format: params.format,
+              payload: params.payload
+            });
+          },
+
+          setEditorFile: (params: { filePath: string }) => {
+            console.log(`[IPC] Current editor file set to: ${params.filePath}`);
+            this.currentEditorFilePath = params.filePath;
+          },
+
+          editorRequestExport: () => {
+            console.log("[IPC] Editor Request Export");
+            this.broadcastToWebview(IPC_EVENTS.EDITOR_REQUEST_EXPORT, {});
+            this.postMessageToWebview({
+              type: EDITOR_MESSAGES.REQUEST_EXPORT
+            });
+          },
+
+          editorClear: () => {
+            console.log("[IPC] Editor Clear");
+            this.currentEditorFilePath = null;
+            this.broadcastToWebview(IPC_EVENTS.EDITOR_CLEAR, {});
+            this.postMessageToWebview({
+              type: EDITOR_MESSAGES.CLEAR
+            });
+          },
+
+          loadRuleInEditor: (params: RPCRequests['loadRuleInEditor']['params']) => {
+            return this.handleAsync((async () => {
+              const { filePath } = params;
+              console.log(`[IPC] Loading rule for editor: ${filePath}`);
+              try {
+                // Ensure editor window is open
+                this.openEditorWindow();
+
+                const content = await rulesAPI.getRuleRawContent(filePath);
+                const format = filePath.endsWith('.yaml') ? 'yaml' : 'json';
+                
+                // Track this file as the current editor file
+                this.currentEditorFilePath = filePath;
+                
+                // Give the window a tiny bit of time to initialize if it's new
+                // though broadcastToWebview handles all open windows.
+                setTimeout(() => {
+                  // Broadcast the content to all webviews
+                  this.broadcastToWebview(IPC_EVENTS.EDITOR_IMPORT, {
+                    format,
+                    payload: content,
+                    filePath
+                  });
+                  
+                  // Also post message for editor listeners
+                  this.postMessageToWebview({
+                    type: EDITOR_MESSAGES.IMPORT,
+                    format,
+                    payload: content
+                  });
+                }, 1000);
+                
+                return { success: true };
+              } catch (error) {
+                console.error(`[IPC] Failed to load rule for editor: ${filePath}`, error);
+                return { success: false, error: String(error) };
+              }
+            })());
+          },
         },
         // Messages from webview to Bun
         messages: {
           "*": (messageName: string, payload: unknown) => {
             console.log(`[IPC] Message from webview: ${messageName}`, payload);
           },
+          editorExported: async (payload) => {
+            console.log("[IPC] Editor Exported data received", payload.timestamp);
+            try {
+              if (this.currentEditorFilePath) {
+                console.log(`[IPC] Saving editor changes to: ${this.currentEditorFilePath}`);
+                const data = typeof payload.yaml === 'string' ? payload.yaml : JSON.stringify(payload.json, null, 2);
+                await Bun.write(this.currentEditorFilePath, data);
+                this.showNotification("Saved", `Changes saved to ${this.currentEditorFilePath}`);
+                
+                // If it's a rule file, we should reload it in the engine
+                if (this.manager && (this.currentEditorFilePath.endsWith('.yaml') || this.currentEditorFilePath.endsWith('.json'))) {
+                   await this.manager.loadRules();
+                   this.manager.updateEngineFromRegistry();
+                }
+              } else {
+                console.log("[IPC] No file path tracked for editor export, data not saved automatically.");
+              }
+            } catch (error) {
+              console.error("[IPC] Error handling editor export:", error);
+              this.showNotification("Error", `Failed to save changes: ${error}`);
+            }
+          }
         },
       },
     });
@@ -444,7 +552,7 @@ export class IpcHandler {
     Object.values(PLATFORMS).forEach((platform) => {
       this.manager!.on(platform, async (event: { eventName: string, data: unknown }) => {
         // Send event to webview if connected
-        this.broadcastToWebview("eventReceived", {
+        this.broadcastToWebview(IPC_EVENTS.EVENT_RECEIVED, {
           platform,
           eventName: event.eventName,
           data: event.data,
@@ -454,21 +562,50 @@ export class IpcHandler {
   }
 
   /**
-   * Broadcast message to webview
+   * Broadcast message to all webviews
    */
   broadcastToWebview(eventName: string, data: unknown): void {
-    if (this.window?.webview) {
-      try {
-        // Execute JS in webview to dispatch event
-        this.window.webview.executeJavascript(`
-          if (window.dispatchEvent) {
-            window.dispatchEvent(new CustomEvent('${eventName}', { detail: ${JSON.stringify(data)} }));
-          }
-        `);
-      } catch (e) {
-        console.log("[IPC] Could not send to webview:", e);
+    this.windows.forEach(win => {
+      if (win.webview) {
+        try {
+          // Use string literal + JSON.stringify to avoid backtick issues in template literals
+          const js = `
+                     if (window.dispatchEvent) { 
+                       window.dispatchEvent(new CustomEvent('${eventName}', { detail: ${JSON.stringify(data)} })); 
+                     }`;
+          win.webview.executeJavascript(js);
+        } catch (e) {
+          console.log(`[IPC] Could not send to webview ${win.id}:`, e);
+        }
       }
-    }
+    });
+
+    // Also use RPC broadcast if available
+    this.windows.forEach(win => {
+        if (win.webview?.rpc) {
+            // @ts-ignore
+            if (win.webview.rpc.send[eventName]) {
+                // @ts-ignore
+                win.webview.rpc.send[eventName](data);
+            }
+        }
+    });
+  }
+
+  /**
+   * Post standard window message to all webviews
+   */
+  postMessageToWebview(data: unknown): void {
+    this.windows.forEach(win => {
+      if (win.webview) {
+        try {
+          const js = "window.postMessage(" + JSON.stringify(data) + ", '*');";
+          win.webview.executeJavascript(js);
+        } catch (e) {
+          console.log(`[IPC] Could not postMessage to webview ${win.id}:`, e);
+        }
+      }
+    });
   }
 
   /**
@@ -489,58 +626,100 @@ export class IpcHandler {
    * Show a notification/alert in the webview
    */
   showNotification(title: string, message: string): void {
-    if (this.window?.webview?.rpc) {
-      // @ts-ignore
-      this.window.webview.rpc.send.showNotification({ title, message });
-    } else {
-      console.log(`[IPC] Notification (no window): ${title} - ${message}`);
+    let sent = false;
+    this.windows.forEach(win => {
+        if (win.webview?.rpc) {
+          // @ts-ignore
+          win.webview.rpc.send.showNotification({ title, message });
+          sent = true;
+        }
+    });
+    
+    if (!sent) {
+      console.log(`[IPC] Notification (no windows): ${title} - ${message}`);
     }
   }
 
   /**
-   * Get the window reference
+   * Get the window reference (last focused or first available)
    */
   getWindow(): BrowserWindow | null {
-    return this.window;
+    return this.lastFocusedWindow || Array.from(this.windows)[0] || null;
   }
 
   /**
    * Check if window is open
    */
   isWindowOpen(): boolean {
-    return this.window !== null;
+    return this.windows.size > 0;
   }
 
   /**
    * Close the IPC window
    */
   closeWindow(): void {
-    if (this.window) {
-      this.window.close();
-      this.window = null;
+    this.windows.forEach(win => {
+       win.close();
+    });
+    this.windows.clear();
+    this.lastFocusedWindow = null;
+  }
+
+  /**
+   * Open the rules editor window
+   */
+  openEditorWindow(): BrowserWindow {
+    // If editor window is already open, focus it and return
+    if (this.editorWindow) {
+        this.editorWindow.focus();
+        return this.editorWindow;
     }
+
+    this.editorWindow = this.openWindow("views://editor/index.html", "Rules Editor");
+    
+    this.editorWindow.on('close', () => {
+        this.editorWindow = null;
+    });
+
+    return this.editorWindow;
   }
 
   /**
    * Create and open the window
    */
-  openWindow(url: string): BrowserWindow {
-    this.window = new BrowserWindow({
-      title: "Plugin Manager",
+  openWindow(url: string, title: string = "Plugin Manager"): BrowserWindow {
+    const win = new BrowserWindow({
+      title,
       url,
       frame: { width: 1200, height: 800, x: 100, y: 100 },
       titleBarStyle: "default",
       rpc: this.rpc ?? undefined,
     });
-    return this.window;
+    
+    this.windows.add(win);
+    this.lastFocusedWindow = win;
+
+    win.on('focus', () => {
+        this.lastFocusedWindow = win;
+    });
+
+    win.on('close', () => {
+        this.windows.delete(win);
+        if (this.lastFocusedWindow === win) {
+            this.lastFocusedWindow = Array.from(this.windows)[0] || null;
+        }
+    });
+
+    return win;
   }
 
   /**
    * Focus the window
    */
   focusWindow(): void {
-    if (this.window) {
-      this.window.focus();
+    const win = this.getWindow();
+    if (win) {
+      win.focus();
     }
   }
 }

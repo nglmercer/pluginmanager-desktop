@@ -4,7 +4,7 @@ import { translate as t } from "lit-i18n";
 import type { RuleInfo } from "../types.js";
 
 // Import theme system
-import { TRASH_ICON, NO_PLUGINS_ICON } from "../styles/index.js";
+import { TRASH_ICON, NO_PLUGINS_ICON, EDIT_ICON } from "../styles/index.js";
 
 /**
  * Rule List Component
@@ -30,11 +30,26 @@ export class RuleList extends LitElement {
   }
 
   private async handleToggle(ruleId: string, enabled: boolean): Promise<void> {
-    const { invokeRpc } = await import("../defaults/rpc.js");
+    const { invokeRpc } = await import("../../shared/rpc.js");
     try {
       await invokeRpc("toggleRule", { ruleId, enabled });
     } catch (e) {
       console.error("Failed to toggle rule:", e);
+    }
+  }
+
+  private async handleEdit(rule: RuleInfo): Promise<void> {
+    if (!rule.filePath) {
+      console.error("Cannot edit rule: No file path provided");
+      return;
+    }
+
+    const { invokeRpc } = await import("../../shared/rpc.js");
+    try {
+      console.log(`[RuleList] Loading rule into editor: ${rule.filePath}`);
+      await invokeRpc("loadRuleInEditor", { filePath: rule.filePath });
+    } catch (e) {
+      console.error("Failed to load rule in editor:", e);
     }
   }
 
@@ -93,6 +108,15 @@ export class RuleList extends LitElement {
                   />
                   <span class="slider absolute cursor-pointer inset-0 bg-border transition-all duration-400 rounded-[20px] checked:bg-success"></span>
                 </label>
+
+                <button
+                  class="bg-transparent border border-border p-2 cursor-pointer rounded-md flex items-center justify-center text-primary transition-all duration-200 hover:bg-hover hover:border-primary"
+                  @click=${() => this.handleEdit(rule)}
+                  ?disabled=${!rule.filePath}
+                  title="${rule.filePath ? t("app.editRule") : t("app.noFilePath")}"
+                >
+                  ${EDIT_ICON}
+                </button>
 
                 <button
                   class="bg-transparent border border-border p-2 cursor-pointer rounded-md flex items-center justify-center text-primary transition-all duration-200 hover:bg-danger-muted hover:border-danger hover:text-danger"

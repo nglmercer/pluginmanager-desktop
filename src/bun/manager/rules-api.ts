@@ -22,6 +22,7 @@ export interface RulesManagerAPI {
   // Utilities
   ruleExists(filePath: string): boolean;
   ensureRulesDir(dirPath: string): void;
+  getRuleRawContent(filePath: string): Promise<string>;
 }
 
 /**
@@ -125,6 +126,20 @@ export const rulesAPI: RulesManagerAPI = {
   ensureRulesDir: (dirPath: string): void => {
     console.log(`[RulesAPI] Ensuring directory exists: ${dirPath}`);
     RulePersistence.ensureDir(dirPath);
+  },
+
+  /**
+   * Get raw content of a rule file
+   */
+  getRuleRawContent: async (filePath: string): Promise<string> => {
+    console.log(`[RulesAPI] Getting raw content from: ${filePath}`);
+    try {
+      const file = Bun.file(filePath);
+      return await file.text();
+    } catch (error) {
+      console.error(`[RulesAPI] Failed to get raw content from: ${filePath}`, error);
+      throw error;
+    }
   },
 };
 
