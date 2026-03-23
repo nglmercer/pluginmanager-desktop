@@ -1,15 +1,19 @@
 import type { ElectrobunConfig } from "electrobun";
-import tailwind from "bun-plugin-tailwind"
+import tailwind from "bun-plugin-tailwind";
+import { readFileSync } from 'fs';
+const packageJson = JSON.parse(readFileSync('./package.json', 'utf8'));
+const iconPath = "assets/icon_256x256.png";
 export default {
 	app: {
-		name: "tray-app",
+		name: "pluginmanager",
 		identifier: "trayapp.electrobun.dev",
-		version: "0.0.1",
+		version: packageJson.version,
 	},
 	runtime: {
 		exitOnLastWindowClosed: false,
 	},
 	build: {
+		bunVersion: "1.3.11",
 		bun: {
 			entrypoint: "src/bun/index.ts",
 			plugins: [
@@ -35,12 +39,15 @@ export default {
 		},
 		mac: {
 			bundleCEF: false,
+			icons: iconPath,
 		},
 		linux: {
 			bundleCEF: false,
+			icon: iconPath,
 		},
 		win: {
 			bundleCEF: false,
+			icon: iconPath,
 		},
 	},
 } satisfies ElectrobunConfig;

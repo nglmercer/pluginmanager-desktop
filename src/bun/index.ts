@@ -13,9 +13,9 @@ import { ipcHandler } from "./ipc";
 // Create tray icon
 const tray = new Tray({
 	title: "Plugin Manager",
-	image: "views://assets/tray-icon.svg",
-	width: 22,
-	height: 22,
+	image: "views://assets/icon_32x32.png",
+	width: 32,
+	height: 32,
 });
 
 /**

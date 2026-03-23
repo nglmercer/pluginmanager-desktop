@@ -3,7 +3,7 @@
   "configVersion": 1,
   "workspaces": {
     "": {
-      "name": "electrobun-tray-app",
+      "name": "electrobun-pluginmanager",
       "dependencies": {
         "bun-plugin-tailwind": "^0.1.2",
         "bun_plugins": "^1.2.7",
