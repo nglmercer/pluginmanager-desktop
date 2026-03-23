@@ -48,7 +48,6 @@ export class RuleList extends LitElement {
         <div class="text-center text-muted py-10 px-5">
           ${NO_PLUGINS_ICON}
           <p class="m-[5px_0]">${t("app.noRules")}</p>
-          <p class="m-[5px_0]">${t("app.clickToAdd")}</p>
         </div>
       `;
     }

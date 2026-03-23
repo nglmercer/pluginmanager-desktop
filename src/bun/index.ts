@@ -34,7 +34,7 @@ function openMainWindow(): void {
 	win.webview.openDevTools();
 	// Set up window close handler
 	win.on("close", () => {
-		console.log("Window closed");
+		closeMainWindow();
 	});
 
 	console.log("Main window opened");
