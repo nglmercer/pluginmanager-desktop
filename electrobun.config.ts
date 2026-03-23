@@ -19,7 +19,8 @@ export default {
 		views: {
 			mainview: {
 				entrypoint: "src/mainview/index.html",
-			},
+				plugins: [tailwind],
+			}
 		},
 		copy: {
 			"src/mainview/index.html": "views/mainview/index.html",
@@ -27,6 +28,7 @@ export default {
 			"src/assets": "views/assets",
 			"src/shared": "views/shared",
 			"src/mainview/dist.css": "views/mainview/dist.css",
+			"src/mainview/trigger-editor/": "views/editor/",
 		},
 		mac: {
 			bundleCEF: false,

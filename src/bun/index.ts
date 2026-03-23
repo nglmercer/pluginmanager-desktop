@@ -39,7 +39,8 @@ function openMainWindow(): void {
 
 	console.log("Main window opened");
 }
-
+// dev open
+//openMainWindow()
 function closeMainWindow(): void {
 	ipcHandler.closeWindow();
 	console.log("Main window closed");
