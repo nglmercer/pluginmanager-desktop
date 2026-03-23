@@ -9,15 +9,16 @@ import { ipcHandler } from "./ipc";
  * Plugin Manager - Modular Entry Point
  * Uses IPC for plugin communication and modular tray/window management
  */
-
+const imagePath = "views://assets/icon.ico";
 // Create tray icon
 const tray = new Tray({
 	title: "Plugin Manager",
-	image: "views://assets/icon_32x32.png",
+	image: imagePath,
+	template: true,
 	width: 32,
 	height: 32,
 });
-
+//tray.setImage(imagePath);
 /**
  * Window management functions
  */
@@ -72,9 +73,6 @@ main().then((result) => {
 tray.setMenu(
 	MenuBuilder.create()
 		.addItem("Open Window", "open")
-		.addItem("Electrobun Docs", "docs")
-		.addItem("Electrobun Github", "github")
-		.addDivider()
 		.addItem("Close Window", "close")
 		.addDivider()
 		.addItem("Quit", "quit")
@@ -93,12 +91,12 @@ tray.on(ontrayevent, (event) => {
 		case "close":
 			closeMainWindow();
 			break;
-		case "docs":
+/* 		case "docs":
 			Utils.openExternal("https://electrobun.dev");
 			break;
 		case "github":
 			Utils.openExternal("https://github.com/blackboardsh/electrobun");
-			break;
+			break; */
 		case "quit":
 			closeMainWindow();
 			tray.remove();
