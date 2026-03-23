@@ -23,7 +23,7 @@ const tray = new Tray({
  */
 function openMainWindow(): void {
 	// If window exists, focus it
-	if (ipcHandler.isWindowOpen()) {
+	if (ipcHandler.isMainWindowOpen()) {
 		ipcHandler.focusWindow();
 		ipcHandler.showNotification("Window Refocused", "The main window is already open.");
 		return;

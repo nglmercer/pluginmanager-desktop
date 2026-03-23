@@ -12,7 +12,7 @@
   "dependencies": {
     "bun-plugin-tailwind": "^0.1.2",
     "bun_plugins": "^1.2.7",
-    "electrobun": "1.15.1",
+    "electrobun": "1.16.0",
     "i18next": "^25.8.20",
     "lit": "^3.3.2",
     "lit-i18n": "^4.1.0",
