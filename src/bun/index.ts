@@ -6,6 +6,7 @@ import { ontrayevent, MenuBuilder } from "./constants/tray";
 import { ipcHandler } from "./ipc";
 import { ActionRegistryPlugin } from "./manager/Register";
 import { PLATFORMS, PLUGIN_NAMES } from "./constants";
+import { triggerEmitter } from 'trigger_system/node'
 /**
  * Plugin Manager - Modular Entry Point
  * Uses IPC for plugin communication and modular tray/window management
@@ -54,6 +55,10 @@ main().then((result) => {
 	const { manager, engine } = result;
 	// Initialize IPC with plugin manager
 	ipcHandler.initialize(manager);
+	triggerEmitter.on('action:error', (error) => {
+		ipcHandler.broadcastToWebview('action-error', error);
+		
+	});
 	Object.values(PLATFORMS).forEach((platform) => {
 		manager.on(platform, async ({ eventName, data }) => {
 			const registryPlugin = (await manager.getPlugin(

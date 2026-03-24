@@ -237,20 +237,24 @@ export class IpcHandler {
 
           // Save a rule
           saveRule: async (params: RPCRequests['saveRule']['params']): Promise<void> => {
-            const { rule, filePath } = params;
+            const { rule, filePath, oldRuleId } = params;  // Add oldRuleId param for renames
             if (this.manager) {
               const registry = this.manager.registry;
               registry.register(rule, filePath);
               
-              // Workaround: ensure the updated/new rule is accurately reflected in the file's rule list
-              const rulesInFile = registry.getRulesByFile(filePath);
-              const finalRules = rulesInFile.some(r => r.id === rule.id)
-                ? rulesInFile.map(r => r.id === rule.id ? rule : r)
-                : [...rulesInFile, rule];
-                
-              await RulePersistence.saveRulesToFile(finalRules, filePath);
-              registry.markFileAsSaved(filePath);
+              // Get current rules in file, filtering out old ID if this is a rename
+              const rulesInFile = registry.getRulesByFile(filePath).filter(r => r.id !== oldRuleId);
               
+              // Check if rule exists (by current ID), if so update it, otherwise add it
+              const existingIndex = rulesInFile.findIndex(r => r.id === rule.id);
+              if (existingIndex >= 0) {
+                rulesInFile[existingIndex] = rule;
+              } else {
+                rulesInFile.push(rule);
+              }
+              
+              await RulePersistence.saveRulesToFile(rulesInFile, filePath);
+              registry.markFileAsSaved(filePath);
               this.manager.updateEngineFromRegistry();
             } else {
               await RulePersistence.saveRule(rule, filePath);
@@ -501,14 +505,24 @@ export class IpcHandler {
             try {
               if (this.currentEditorFilePath) {
                 console.log(`[IPC] Saving editor changes to: ${this.currentEditorFilePath}`);
-                const data = typeof payload.yaml === 'string' ? payload.yaml : JSON.stringify(payload.json, null, 2);
-                await Bun.write(this.currentEditorFilePath, data);
+                
+                // Parse editor result and ensure it's a valid rules array
+                let content: string;
+                if (typeof payload.yaml === 'string') {
+                  content = payload.yaml;
+                } else if (payload.json) {
+                  content = JSON.stringify(payload.json, null, 2);
+                } else {
+                  throw new Error("Editor export missing yaml or json content");
+                }
+                
+                await Bun.write(this.currentEditorFilePath, content);
                 this.showNotification("Saved", `Changes saved to ${this.currentEditorFilePath}`);
                 
-                // If it's a rule file, we should reload it in the engine
+                // Reload rules - the registry will parse and validate the file content
                 if (this.manager && (this.currentEditorFilePath.endsWith('.yaml') || this.currentEditorFilePath.endsWith('.json'))) {
-                   await this.manager.loadRules();
-                   this.manager.updateEngineFromRegistry();
+                  await this.manager.loadRules();
+                  this.manager.updateEngineFromRegistry();
                 }
               } else {
                 console.log("[IPC] No file path tracked for editor export, data not saved automatically.");
@@ -518,8 +532,8 @@ export class IpcHandler {
               this.showNotification("Error", `Failed to save changes: ${error}`);
             }
           }
-        },
-      },
+        }
+      }
     });
   }
 

@@ -15,6 +15,7 @@ export interface RulesManagerAPI {
   // Saving
   saveRule(rule: TriggerRule, filePath: string): Promise<void>;
   saveAllRules(rules: TriggerRule[], baseDir: string, getFilePath?: (ruleId: string) => string): Promise<string[]>;
+  saveRulesToFile(rules: TriggerRule[], filePath: string): Promise<void>;
 
   // Deletion
   deleteRule(filePath: string): Promise<boolean>;
@@ -72,7 +73,16 @@ export const rulesAPI: RulesManagerAPI = {
       throw error;
     }
   },
-
+  saveRulesToFile: async (rules: TriggerRule[], filePath: string): Promise<void> => {
+    console.log(`[RulesAPI] Saving ${rules.length} rules to file: ${filePath}`);
+    try {
+      await RulePersistence.saveRulesToFile(rules, filePath);
+      console.log(`[RulesAPI] Successfully saved ${rules.length} rules to ${filePath}`);
+    } catch (error) {
+      console.error(`[RulesAPI] Failed to save rules to file: ${filePath}`, error);
+      throw error;
+    }
+  },
   /**
    * Save multiple rules
    */
