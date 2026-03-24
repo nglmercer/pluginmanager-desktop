@@ -39,7 +39,7 @@ export class BasePluginManager extends PluginManager {
     // Registrar los plugins core automáticamente
     this.actionRegistryPlugin = actionRegistryPlugin;
     Object.entries(helpers).forEach(([name, fn]) => {
-      this.actionRegistryPlugin?.register(name, fn);
+      this.actionRegistryPlugin?.helperRegistry.register(name, fn);
     });
     this.register(this.actionRegistryPlugin);
   }
