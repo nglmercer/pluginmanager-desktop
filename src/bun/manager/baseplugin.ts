@@ -60,7 +60,7 @@ export class BasePluginManager extends PluginManager {
         data,
         pluginHelpers
     });
-    this.engine.processEventSimple(eventName, data, pluginHelpers);
+    return this.engine.processEventSimple(eventName, data, pluginHelpers);
   }
 
   /**

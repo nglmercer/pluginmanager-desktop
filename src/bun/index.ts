@@ -51,12 +51,12 @@ function closeMainWindow(): void {
 // Initialize plugin manager
 main().then((result) => {
 	console.log("Plugins loaded:", Object.keys(result));
-	
+	const { manager, engine } = result;
 	// Initialize IPC with plugin manager
-	ipcHandler.initialize(result.manager);
+	ipcHandler.initialize(manager);
 	Object.values(PLATFORMS).forEach((platform) => {
-		result.manager.on(platform, async ({ eventName, data }) => {
-			const registryPlugin = (await result.manager.getPlugin(
+		manager.on(platform, async ({ eventName, data }) => {
+			const registryPlugin = (await manager.getPlugin(
 			PLUGIN_NAMES.ACTION_REGISTRY
 			)) as ActionRegistryPlugin;
 			//console.log("Helpers:", registryPlugin);
@@ -64,18 +64,20 @@ main().then((result) => {
 			const pluginHelpers = registryPlugin.Helpers;
 			//console.log(pluginHelpers,registryPlugin);
 			if (eventName && data) {
-				result.engine.processEventSimple(eventName, data, pluginHelpers);
+				const result = await engine.processEventSimple(eventName, data, pluginHelpers);
+				ipcHandler.broadcastToWebview('event-result', {eventName, result});
 				ipcHandler.broadcastToWebview(eventName, data);
+				ipcHandler.broadcastToWebview('event-result', {eventName, result});
 				ipcHandler.postMessageToWebview({eventName, data});
 			}
 		});
 	});
 	const cleanup = async () => {
-		const allplugins = result.manager.listPlugins();
+		const allplugins = manager.listPlugins();
 		console.log('[cleanup]',allplugins)
 		allplugins.forEach((plugin) => {
-			result.manager.disablePlugin(plugin)
-			result.manager.unregister(plugin)
+			manager.disablePlugin(plugin)
+			manager.unregister(plugin)
 		});
 	}
 	process.on('exit', cleanup);
