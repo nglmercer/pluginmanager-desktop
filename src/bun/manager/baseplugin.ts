@@ -6,6 +6,7 @@ import { actionRegistryPlugin, ActionRegistryPlugin } from "./Register";
 import { ensureDir, getBaseDir } from "../utils/filepath";
 import { PLUGIN_NAMES, PATHS } from "../constants";
 import { helpers } from "./defaults/helpers";
+import { ContextAdapter } from "trigger_system/node";
 
 /**
  * Gestor de plugins personalizado para TTS
@@ -38,9 +39,6 @@ export class BasePluginManager extends PluginManager {
     
     // Registrar los plugins core automáticamente
     this.actionRegistryPlugin = actionRegistryPlugin;
-    Object.entries(helpers).forEach(([name, fn]) => {
-      this.actionRegistryPlugin?.helperRegistry.register(name, fn);
-    });
     this.register(this.actionRegistryPlugin);
   }
 
@@ -49,18 +47,14 @@ export class BasePluginManager extends PluginManager {
    * @param eventName - Nombre del evento (ej: 'chat', 'gift', 'comment')
    * @param data - Datos del evento (objeto con la estructura del evento)
    */
-  async emulateEvent(eventName: string, data: Record<string, unknown>) {
-    const registryPlugin = (await this.getPlugin(
-      PLUGIN_NAMES.ACTION_REGISTRY
-    )) as ActionRegistryPlugin;
-    const pluginHelpers = registryPlugin?.Helpers || {};
-    
+  async emulateEvent(eventName: string, data: Record<string, unknown>, pluginHelpers: Record<string, unknown> = helpers) {
     console.log(`[EMULATE]`, {
         eventName,
-        data,
-        pluginHelpers
+        data
+        
     });
-    return this.engine.processEventSimple(eventName, data, pluginHelpers);
+    const context = ContextAdapter.create(eventName, data, pluginHelpers);
+    return this.engine.processEvent(context);
   }
 
   /**

@@ -3,47 +3,12 @@ import type { ActionHandler } from "trigger_system/node";
 import { ActionRegistry } from "trigger_system/node";
 import { PLUGIN_NAMES } from "../constants";
 
-export class HelperRegistry {
-  private static instance: HelperRegistry;
-  private helpers: Record<string, Function> = {};
-
-  private constructor() {}
-
-  static getInstance(): HelperRegistry {
-    if (!HelperRegistry.instance) {
-      HelperRegistry.instance = new HelperRegistry();
-    }
-    return HelperRegistry.instance;
-  }
-
-  register(name: string, fn: Function) {
-    this.helpers[name] = fn;
-    console.log(`[HelperRegistry] Helper registrado: ${name}`);
-  }
-
-  getHelpers() {
-    return { ...this.helpers };
-  }
-
-  get(name: string): Function | undefined {
-    return this.helpers[name];
-  }
-}
-
 export class ActionRegistryPlugin implements IPlugin {
   name = PLUGIN_NAMES.ACTION_REGISTRY;
   version = "1.0.0";
 
   public get registry() {
     return ActionRegistry.getInstance();
-  }
-
-  public get helperRegistry() {
-    return HelperRegistry.getInstance();
-  }
-
-  get Helpers() {
-    return this.helperRegistry.getHelpers();
   }
   
   constructor() {

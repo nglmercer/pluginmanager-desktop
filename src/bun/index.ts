@@ -4,9 +4,10 @@ import { TrayClickedEvent } from "./index.d";
 import { main } from "./pluginmanager";
 import { ontrayevent, MenuBuilder } from "./constants/tray";
 import { ipcHandler } from "./ipc";
-import { ActionRegistryPlugin } from "./manager/Register";
-import { PLATFORMS, PLUGIN_NAMES } from "./constants";
-import { triggerEmitter } from 'trigger_system/node'
+import { PLATFORMS } from "./constants";
+import { triggerEmitter } from 'trigger_system/node';
+import { ContextAdapter } from 'trigger_system/node';
+import { helpers } from "./manager/defaults/helpers";
 /**
  * Plugin Manager - Modular Entry Point
  * Uses IPC for plugin communication and modular tray/window management
@@ -61,15 +62,13 @@ main().then((result) => {
 	});
 	Object.values(PLATFORMS).forEach((platform) => {
 		manager.on(platform, async ({ eventName, data }) => {
-			const registryPlugin = (await manager.getPlugin(
-			PLUGIN_NAMES.ACTION_REGISTRY
-			)) as ActionRegistryPlugin;
+
 			//console.log("Helpers:", registryPlugin);
 			
-			const pluginHelpers = registryPlugin.Helpers;
 			//console.log(pluginHelpers,registryPlugin);
 			if (eventName && data) {
-				const result = await engine.processEventSimple(eventName, data, pluginHelpers);
+				const context = ContextAdapter.create(eventName, data, helpers);
+				const result = await engine.processEvent(context);
 				ipcHandler.broadcastToWebview('event-result', {eventName, result});
 				ipcHandler.broadcastToWebview(eventName, data);
 				ipcHandler.broadcastToWebview('event-result', {eventName, result});
