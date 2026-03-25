@@ -6,7 +6,6 @@ import { ontrayevent, MenuBuilder } from "./constants/tray";
 import { ipcHandler } from "./ipc";
 import { PLATFORMS } from "./constants";
 import { triggerEmitter } from 'trigger_system/node';
-import { ContextAdapter } from 'trigger_system/node';
 import { helpers } from "./manager/defaults/helpers";
 /**
  * Plugin Manager - Modular Entry Point
@@ -60,6 +59,7 @@ main().then((result) => {
 		ipcHandler.broadcastToWebview('action-error', error);
 		
 	});
+	engine.registerVars(helpers);
 	Object.values(PLATFORMS).forEach((platform) => {
 		manager.on(platform, async ({ eventName, data }) => {
 
@@ -67,8 +67,7 @@ main().then((result) => {
 			
 			//console.log(pluginHelpers,registryPlugin);
 			if (eventName && data) {
-				const context = ContextAdapter.create(eventName, data, helpers);
-				const result = await engine.processEvent(context);
+				const result = await engine.processEventSimple(eventName, data, helpers);
 				ipcHandler.broadcastToWebview('event-result', {eventName, result});
 				ipcHandler.broadcastToWebview(eventName, data);
 				ipcHandler.broadcastToWebview('event-result', {eventName, result});

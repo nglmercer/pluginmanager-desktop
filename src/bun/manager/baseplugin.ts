@@ -6,7 +6,6 @@ import { actionRegistryPlugin, ActionRegistryPlugin } from "./Register";
 import { ensureDir, getBaseDir } from "../utils/filepath";
 import { PLUGIN_NAMES, PATHS } from "../constants";
 import { helpers } from "./defaults/helpers";
-import { ContextAdapter } from "trigger_system/node";
 
 /**
  * Gestor de plugins personalizado para TTS
@@ -53,8 +52,7 @@ export class BasePluginManager extends PluginManager {
         data
         
     });
-    const context = ContextAdapter.create(eventName, data, pluginHelpers);
-    return this.engine.processEvent(context);
+    return this.engine.processEventSimple(eventName, data, pluginHelpers);
   }
 
   /**
