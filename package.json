@@ -8,7 +8,8 @@
     "dev": "bun run build:css && electrobun dev --watch",
     "build:canary": "bunx electrobun build --env=canary",
     "build:stable": "bunx electrobun build --env=stable",
-    "build:css": "bun tailwindcss -i ./src/mainview/index.css -o ./src/mainview/dist.css"
+    "build:css": "bun tailwindcss -i ./src/mainview/index.css -o ./src/mainview/dist.css",
+    "build:plugins": "bun run pluginfetch/BUILDER.TS"
   },
   "dependencies": {
     "bun-plugin-tailwind": "^0.1.2",
