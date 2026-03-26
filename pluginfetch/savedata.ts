@@ -4,6 +4,7 @@ import { getRegistryPlugin } from "./shared";
 
 export class saveDataPlugin implements IPlugin {
   name = PLUGIN_NAMES.SAVE_EVENTS;
+  description = "Saves event data to files";
   version = "1.0.0";
   private context?: PluginContext;
   private save?: boolean = true;

@@ -2,9 +2,11 @@ import type { IPlugin, PluginContext } from "bun_plugins";
 import { PLUGIN_NAMES, ACTIONS } from "../src/bun/constants";
 import { getRegistryPlugin,ApiExecutor } from "./shared";
 
+//        context?.emit(PLATFORMS.SYSTEM, { eventName: 'TTS', data: {message: "text"} });
 export class saveDataPlugin implements IPlugin {
   name = PLUGIN_NAMES.TTS_SERVICE;
   version = "1.0.0";
+  description = "Text-to-speech service use https://github.com/nglmercer/SonicBoom";
   defaultConfig?: Record<string, any> | undefined = {
       "url": "http://localhost:8455/api/tts/play",
       "method": "POST",
@@ -20,22 +22,22 @@ export class saveDataPlugin implements IPlugin {
   }
 
   async onLoad(context: PluginContext) {
-    const {log,storage} = context;
+    const {log} = context;
     const registryPlugin = await getRegistryPlugin(context);
-    if (!registryPlugin) return;
+    if (!registryPlugin || !registryPlugin.registry) return;
 
-    registryPlugin.registry?.register(ACTIONS.TTS, async (action, ctx) => {
-      const msg = String(action?.params?.message);
+    registryPlugin.registry.register(ACTIONS.TTS, async (action, ctx) => {
+      const msg = String(action.params?.message);
       if (!msg)return;
-      //ctx.data
-      const defaultUrl = await storage.get("tts_url",this.defaultConfig?.url);
+
+      const config = await this.loadConfig(context);
       const api = new ApiExecutor();
       const result = await api.execute({
-        url: defaultUrl!,
-        method: this.defaultConfig?.method || "POST",
+        url: config.url!,
+        method: (config.method! as "POST" | "GET" | "PUT" | "DELETE") || "POST",
         body: msg,
-        query: this.defaultConfig?.query,
-        headers: this.defaultConfig?.headers
+        query: config.query,
+        headers: config.headers
       }).catch(err => {
         log.error("TTS request failed",err);
         return null;
@@ -43,7 +45,33 @@ export class saveDataPlugin implements IPlugin {
       return result;
     });
   }
-  
+  async loadConfig(context: PluginContext) {
+    const {storage} = context;
+    const config = this.defaultConfig;
+        //ctx.data
+    const defaultMethod = await storage.get<string>("tts.method",config?.method);
+    const defaultUrl = await storage.get<string>("tts.url",config?.url) ;
+    const defaultQuery = await storage.get<Record<string, any>>("tts.query",config?.query);
+    const defaultHeaders = await storage.get<Record<string, any>>("tts.headers",config?.headers);
+    if (defaultMethod === config?.method) {
+      await storage.set("tts.method",defaultMethod);
+    }
+    if (defaultUrl === config?.url) {
+      await storage.set("tts.url",defaultUrl);
+    }
+    if (defaultQuery === config?.query) {
+      await storage.set("tts.query",defaultQuery);
+    }
+    if (defaultHeaders === config?.headers) {
+      await storage.set("tts.headers",defaultHeaders);
+    }
+    return {
+      method: defaultMethod,
+      url: defaultUrl,
+      query: defaultQuery,
+      headers: defaultHeaders
+    };
+  }
   onUnload() {
     
   }
