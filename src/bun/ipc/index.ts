@@ -8,7 +8,7 @@ import { RulePersistence } from "trigger_system/node";
 import type { PluginManagerRPC, PluginInfo, PluginStatus, RuleInfo, WindowStatus, ActionResult } from "../../shared/types";
 import type { TriggerRule } from "trigger_system/node";
 import { IPC_EVENTS, EDITOR_MESSAGES } from "../constants";
-
+import { randomUUID } from "crypto";
 // This is the type of any RPC handler to help with complex typing
 type RPCRequests = PluginManagerRPC['bun']['requests'];
 
@@ -300,12 +300,13 @@ export class IpcHandler {
           // Create default rule
           createDefaultRule: async (): Promise<TriggerRule> => {
             const rulesDir = pluginAPI.getRulesDir();
+            const uniqueId = randomUUID();
             const options = {
               event: "onStart",
               name: "New Default Rule",
-              description: "Auto-generated rule",
+              description: "Auto-generated rule with id: " + uniqueId,
               enabled: false,
-              filePath: `${rulesDir}/onStart.yaml`
+              filePath: `${rulesDir}/onStart-${uniqueId}.yaml`
             };
             const rule = rulesAPI.createDefaultRule(options, true);
             return rule;

@@ -18,9 +18,10 @@ interface DefaultRuleOptions{
   filePath?:string;
 }
 function DefaultRule({event,name,description,enabled,tags}:DefaultRuleOptions){
+  const random = randomUUID();
   const rule = new RuleBuilder()
   .on(event)
-  .withId(randomUUID())
+  .withId(random)
   .withName(name || "Default Rule")
   .withDescription(description || "Default rule")
   .withEnabled(enabled || true)
@@ -183,7 +184,7 @@ export const rulesAPI: RulesManagerAPI = {
   createDefaultRule: (options: DefaultRuleOptions,write:boolean=false): TriggerRule => {
     try {
       const rule = DefaultRule(options);
-      const filePath = options.filePath || `${options.event}`;
+      const filePath = options.filePath || `${options.event}-${rule.id}`;
       if(write){
         rulesAPI.saveRule(rule,filePath);
       }
