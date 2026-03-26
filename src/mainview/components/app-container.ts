@@ -12,7 +12,7 @@ import "./settings-modal.js";
 import "./action-menu.js";
 
 // Import icons
-import { APP_ICON, SETTINGS_ICON, PLUS_ICON } from "../styles/index.js";
+import { APP_ICON, SETTINGS_ICON, PLUS_ICON, MORE_VERT_ICON, FOLDER_ICON, UPLOAD_ICON } from "../styles/index.js";
 
 /**
  * Main App Container
@@ -36,9 +36,57 @@ export class AppContainer extends LitElement {
     this._settingsModal.open();
   }
 
-  private async addDefaultRule(): Promise<void> {
-    const { invokeRpc } = await import("../../shared/rpc.js");
-    await invokeRpc("createDefaultRule", {});
+  private openGlobalMenu(e: MouseEvent): void {
+    const ActionMenu = customElements.get("action-menu") as any;
+    if (!ActionMenu) return;
+    
+    ActionMenu.show(e, [
+      {
+        id: "add-rule",
+        label: i18next.t("app.addDefaultRule", { defaultValue: "Add Default Rule" }),
+        icon: PLUS_ICON,
+        action: async () => {
+          const { invokeRpc } = await import("../../shared/rpc.js");
+          await invokeRpc("createDefaultRule", {});
+        }
+      },
+      {
+        id: "upload-rule",
+        label: i18next.t("app.uploadRule", { defaultValue: "Upload Rule" }),
+        icon: UPLOAD_ICON,
+        action: async () => {
+          const { invokeRpc } = await import("../../shared/rpc.js");
+          await invokeRpc("uploadRule", {});
+        }
+      },
+      {
+        id: "upload-plugin",
+        label: i18next.t("app.uploadPlugin", { defaultValue: "Upload Plugin" }),
+        icon: UPLOAD_ICON,
+        action: async () => {
+          const { invokeRpc } = await import("../../shared/rpc.js");
+          await invokeRpc("uploadPlugin", {});
+        }
+      },
+      {
+        id: "open-rules-dir",
+        label: i18next.t("app.openRulesDir", { defaultValue: "Open Rules Directory" }),
+        icon: FOLDER_ICON,
+        action: async () => {
+          const { invokeRpc } = await import("../../shared/rpc.js");
+          await invokeRpc("openRulesFolder", {});
+        }
+      },
+      {
+        id: "open-plugins-dir",
+        label: i18next.t("app.openPluginsDir", { defaultValue: "Open Plugins Directory" }),
+        icon: FOLDER_ICON,
+        action: async () => {
+          const { invokeRpc } = await import("../../shared/rpc.js");
+          await invokeRpc("openPluginsFolder", {});
+        }
+      }
+    ]);
   }
 
   render() {
@@ -69,17 +117,18 @@ export class AppContainer extends LitElement {
 
           <button
             class="ml-auto bg-transparent border-none p-2 cursor-pointer rounded-full transition-colors flex items-center justify-center text-muted hover:bg-hover hover:text-primary"
-            @click=${this.addDefaultRule}
-            title="${i18next.t("app.addDefaultRule", { defaultValue: "Add Default Rule" })}"
-          >
-            ${PLUS_ICON}
-          </button>
-          <button
-            class="ml-2 bg-transparent border-none p-2 cursor-pointer rounded-full transition-colors flex items-center justify-center text-muted hover:bg-hover hover:text-primary"
             @click=${this.openSettings}
             title="${t("app.settings")}"
           >
             ${SETTINGS_ICON}
+          </button>
+          
+          <button
+            class="ml-2 bg-transparent border-none p-2 cursor-pointer rounded-full transition-colors flex items-center justify-center text-muted hover:bg-hover hover:text-primary"
+            @click=${this.openGlobalMenu}
+            title="${i18next.t("app.moreOptions", { defaultValue: "More options" })}"
+          >
+            ${MORE_VERT_ICON}
           </button>
         </div>
 

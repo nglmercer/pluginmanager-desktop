@@ -5,7 +5,7 @@ import { i18next } from "../defaults/i18n.js";
 import type { RuleInfo } from "../types.js";
 
 // Import theme system
-import { TRASH_ICON, NO_PLUGINS_ICON, EDIT_ICON, MORE_VERT_ICON } from "../styles/index.js";
+import { TRASH_ICON, NO_PLUGINS_ICON, EDIT_ICON, FOLDER_ICON, MORE_VERT_ICON } from "../styles/index.js";
 
 /**
  * Rule List Component
@@ -54,12 +54,28 @@ export class RuleList extends LitElement {
     }
   }
 
+  private async handleOpenRuleFolder(rule: RuleInfo): Promise<void> {
+    if (!rule.filePath) return;
+    const { invokeRpc } = await import("../../shared/rpc.js");
+    try {
+      await invokeRpc("openRuleFolder", { filePath: rule.filePath });
+    } catch (e) {
+      console.error("Failed to open rule folder:", e);
+    }
+  }
+
   private showRuleActions(e: MouseEvent, rule: RuleInfo): void {
     if (!rule.filePath) return;
     const ActionMenu = customElements.get("action-menu") as any;
     if(!ActionMenu) return;
     
     ActionMenu.show(e, [
+      {
+        id: "open",
+        label: i18next.t("app.openRuleFolder", { defaultValue: "Abrir Ubicación" }),
+        icon: FOLDER_ICON,
+        action: () => this.handleOpenRuleFolder(rule)
+      },
       {
         id: "edit",
         label: i18next.t("app.editRule", { defaultValue: "Edit" }),

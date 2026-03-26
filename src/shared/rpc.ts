@@ -9,6 +9,7 @@ const asyncCallbacks = new Map<string, { resolve: Resolver; reject: Rejecter }>(
 
 // Define RPC schema for plugin manager
 const rpc = Electroview.defineRPC<PluginManagerRPC>({
+  maxRequestTime: 120000, // Important: 2 minute timeout to prevent blocking dialogs from timing out
   handlers: {
     requests: {},
     messages: {

@@ -80,6 +80,7 @@ export class IpcHandler {
     // Define RPC for handling requests from webview
     // This can be called before manager is initialized; handlers check for manager presence.
     this.rpc = BrowserView.defineRPC<PluginManagerRPC>({
+      maxRequestTime: 120000, // Important: 2 minutes timeout to prevent blocking dialogs from failing
       handlers: {
         requests: {
           // ===== Plugin Management API =====
@@ -211,6 +212,67 @@ export class IpcHandler {
             } catch (e) {
               console.error("[IPC] Failed to open rules folder:", e);
               return "";
+            }
+          },
+
+          // ===== Upload API =====
+          uploadPlugin: async (): Promise<boolean> => {
+            try {
+              const paths = await Utils.openFileDialog({
+                startingFolder: Utils.paths.home,
+                canChooseFiles: false,
+                canChooseDirectory: true,
+                allowsMultipleSelection: true,
+              });
+              
+              const validPaths = paths ? paths.filter(p => p.trim() !== "") : [];
+              if (validPaths.length === 0) return false;
+              
+              const pluginsDir = pluginAPI.getPluginsDir();
+              const fs = require("fs");
+              const path = require("path");
+              
+              for (const p of validPaths) {
+                const basename = path.basename(p);
+                const target = path.join(pluginsDir, basename);
+                fs.cpSync(p, target, { recursive: true });
+              }
+              // It's up to the frontend to reload the plugins list or call manager.loadPlugins if needed.
+              return true;
+            } catch (e) {
+              console.error("[IPC] Failed to upload plugin:", e);
+              return false;
+            }
+          },
+
+          uploadRule: async (): Promise<boolean> => {
+            try {
+              const paths = await Utils.openFileDialog({
+                startingFolder: Utils.paths.home,
+                allowedFileTypes: "yaml,yml,json",
+                canChooseFiles: true,
+                canChooseDirectory: false,
+                allowsMultipleSelection: true,
+              });
+
+              const validPaths = paths ? paths.filter(p => p.trim() !== "") : [];
+              if (validPaths.length === 0) return false;
+              
+              const rulesDir = pluginAPI.getRulesDir();
+              const fs = require("fs");
+              const path = require("path");
+              for (const p of validPaths) {
+                const basename = path.basename(p);
+                fs.copyFileSync(p, path.join(rulesDir, basename));
+              }
+              if (this.manager) {
+                 await this.manager.loadRules();
+                 this.manager.updateEngineFromRegistry();
+              }
+              return true;
+            } catch (e) {
+              console.error("[IPC] Failed to upload rule:", e);
+              return false;
             }
           },
 
@@ -412,6 +474,12 @@ export class IpcHandler {
               return false;
             }
           },
+
+          // Open rule folder
+          openRuleFolder: async (params: RPCRequests['openRuleFolder']['params']): Promise<boolean> => {
+            return rulesAPI.openRuleFolder(params.filePath);
+          },
+
           // Get window status
           getWindowStatus: (): WindowStatus => {
             return {

@@ -23,6 +23,9 @@ export type PluginManagerRPC = {
       getWindowStatus: { params: {}; response: WindowStatus };
       openRulesFolder: { params: {}; response: AsyncResponseWrapper<string> };
       openPluginFolder: { params: { pluginName: string }; response: AsyncResponseWrapper<boolean> };
+      openRuleFolder: { params: { filePath: string }; response: AsyncResponseWrapper<boolean> };
+      uploadRule: { params: {}; response: AsyncResponseWrapper<boolean> };
+      uploadPlugin: { params: {}; response: AsyncResponseWrapper<boolean> };
       // ===== Rules Management API =====
       loadRulesFromDir: { params: { dirPath: string }; response: AsyncResponseWrapper<TriggerRule[]> };
       loadRulesFromFile: { params: { filePath: string }; response: AsyncResponseWrapper<TriggerRule[]> };

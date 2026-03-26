@@ -8,6 +8,7 @@ import { RulePersistence } from "trigger_system/node";
 import type { TriggerRule } from "trigger_system/node";
 import { RuleBuilder } from "trigger_system/node";
 import { randomUUID } from "crypto";
+import { Utils } from "electrobun/bun";
 interface DefaultRuleOptions{
   event:string;
   name?:string;
@@ -48,6 +49,7 @@ export interface RulesManagerAPI {
   ensureRulesDir(dirPath: string): void;
   getRuleRawContent(filePath: string): Promise<string>;
   createDefaultRule(options: DefaultRuleOptions, write?: boolean): TriggerRule;
+  openRuleFolder(filePath: string): boolean;
 }
 
 /**
@@ -189,6 +191,20 @@ export const rulesAPI: RulesManagerAPI = {
     } catch (error) {
       console.error(`[RulesAPI] Failed to create default rule:`, error);
       throw error;
+    }
+  },
+
+  /**
+   * Open the folder containing a rule
+   */
+  openRuleFolder: (filePath: string): boolean => {
+    console.log(`[RulesAPI] Opening rule folder: ${filePath}`);
+    try {
+      Utils.showItemInFolder(filePath);
+      return true;
+    } catch (error) {
+      console.error(`[RulesAPI] Failed to open rule folder:`, error);
+      return false;
     }
   },
 };

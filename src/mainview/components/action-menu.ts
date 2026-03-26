@@ -20,6 +20,7 @@ export class ActionMenu extends LitElement {
       display: block;
       position: absolute;
       z-index: 9999;
+      pointer-events: none;
     }
     .menu {
       display: flex;
