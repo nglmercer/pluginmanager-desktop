@@ -1,10 +1,11 @@
 import { LitElement, html } from "lit";
 import { customElement, property } from "lit/decorators.js";
 import { translate as t } from "lit-i18n";
+import { i18next } from "../defaults/i18n.js";
 import type { PluginInfo } from "../types.js";
 
 // Import theme system
-import { FOLDER_ICON, TRASH_ICON, NO_PLUGINS_ICON } from "../styles/index.js";
+import { FOLDER_ICON, TRASH_ICON, NO_PLUGINS_ICON, MORE_VERT_ICON } from "../styles/index.js";
 
 /**
  * Plugin List Component
@@ -45,6 +46,27 @@ export class PluginList extends LitElement {
     } catch (e) {
       console.error("Failed to open plugin folder:", e);
     }
+  }
+
+  private showPluginActions(e: MouseEvent, plugin: PluginInfo): void {
+    const ActionMenu = customElements.get("action-menu") as any;
+    if(!ActionMenu) return;
+    
+    ActionMenu.show(e, [
+      {
+        id: "open",
+        label: i18next.t("app.openPluginFolder", { defaultValue: "Open Folder" }),
+        icon: FOLDER_ICON,
+        action: () => this.handleOpenPluginFolder(plugin.id || plugin.name)
+      },
+      {
+        id: "uninstall",
+        label: i18next.t("app.uninstall", { defaultValue: "Uninstall" }),
+        icon: TRASH_ICON,
+        danger: true,
+        action: () => this.handleRemove(plugin.id || plugin.name)
+      }
+    ]);
   }
 
   render() {
@@ -90,20 +112,13 @@ export class PluginList extends LitElement {
                   <span class="slider absolute cursor-pointer inset-0 bg-border transition-all duration-400 rounded-[20px] checked:bg-success"></span>
                 </label>
 
+                <!-- Actions Dropdown Trigger -->
                 <button
-                  class="bg-transparent border border-border p-2 cursor-pointer rounded-md flex items-center justify-center text-primary transition-all duration-200 hover:bg-hover hover:border-primary hover:text-primary"
-                  @click=${() => this.handleOpenPluginFolder(plugin.id || plugin.name)}
-                  title="${t("app.openPluginFolder")}"
+                  class="flex bg-transparent border-none p-2 cursor-pointer rounded-md text-primary hover:bg-hover"
+                  @click=${(e: MouseEvent) => this.showPluginActions(e, plugin)}
+                  title="${i18next.t("app.moreOptions", { defaultValue: "More Menu" })}"
                 >
-                  ${FOLDER_ICON}
-                </button>
-
-                <button
-                  class="bg-transparent border border-border p-2 cursor-pointer rounded-md flex items-center justify-center text-primary transition-all duration-200 hover:bg-danger-muted hover:border-danger hover:text-danger"
-                  @click=${() => this.handleRemove(plugin.id || plugin.name)}
-                  title="${t("app.uninstall")}"
-                >
-                  ${TRASH_ICON}
+                  ${MORE_VERT_ICON}
                 </button>
               </div>
             </div>

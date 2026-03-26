@@ -1,10 +1,11 @@
 import { LitElement, html } from "lit";
 import { customElement, property } from "lit/decorators.js";
 import { translate as t } from "lit-i18n";
+import { i18next } from "../defaults/i18n.js";
 import type { RuleInfo } from "../types.js";
 
 // Import theme system
-import { TRASH_ICON, NO_PLUGINS_ICON, EDIT_ICON } from "../styles/index.js";
+import { TRASH_ICON, NO_PLUGINS_ICON, EDIT_ICON, MORE_VERT_ICON } from "../styles/index.js";
 
 /**
  * Rule List Component
@@ -51,6 +52,28 @@ export class RuleList extends LitElement {
     } catch (e) {
       console.error("Failed to load rule in editor:", e);
     }
+  }
+
+  private showRuleActions(e: MouseEvent, rule: RuleInfo): void {
+    if (!rule.filePath) return;
+    const ActionMenu = customElements.get("action-menu") as any;
+    if(!ActionMenu) return;
+    
+    ActionMenu.show(e, [
+      {
+        id: "edit",
+        label: i18next.t("app.editRule", { defaultValue: "Edit" }),
+        icon: EDIT_ICON,
+        action: () => this.handleEdit(rule)
+      },
+      {
+        id: "delete",
+        label: i18next.t("app.deleteRule", { defaultValue: "Delete" }),
+        icon: TRASH_ICON,
+        danger: true,
+        action: () => this.handleDelete(rule.id)
+      }
+    ]);
   }
 
   render() {
@@ -109,21 +132,14 @@ export class RuleList extends LitElement {
                   <span class="slider absolute cursor-pointer inset-0 bg-border transition-all duration-400 rounded-[20px] checked:bg-success"></span>
                 </label>
 
+                <!-- Actions Dropdown Trigger -->
                 <button
-                  class="bg-transparent border border-border p-2 cursor-pointer rounded-md flex items-center justify-center text-primary transition-all duration-200 hover:bg-hover hover:border-primary"
-                  @click=${() => this.handleEdit(rule)}
+                  class="flex bg-transparent border-none p-2 cursor-pointer rounded-md text-primary hover:bg-hover"
+                  @click=${(e: MouseEvent) => this.showRuleActions(e, rule)}
                   ?disabled=${!rule.filePath}
-                  title="${rule.filePath ? t("app.editRule") : t("app.noFilePath")}"
+                  title="${i18next.t("app.moreOptions", { defaultValue: "More Menu" })}"
                 >
-                  ${EDIT_ICON}
-                </button>
-
-                <button
-                  class="bg-transparent border border-border p-2 cursor-pointer rounded-md flex items-center justify-center text-primary transition-all duration-200 hover:bg-danger-muted hover:border-danger hover:text-danger"
-                  @click=${() => this.handleDelete(rule.id)}
-                  title="${t("app.deleteRule")}"
-                >
-                  ${TRASH_ICON}
+                  ${MORE_VERT_ICON}
                 </button>
               </div>
             </div>

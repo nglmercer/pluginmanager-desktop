@@ -26,6 +26,7 @@ export type PluginManagerRPC = {
       // ===== Rules Management API =====
       loadRulesFromDir: { params: { dirPath: string }; response: AsyncResponseWrapper<TriggerRule[]> };
       loadRulesFromFile: { params: { filePath: string }; response: AsyncResponseWrapper<TriggerRule[]> };
+      createDefaultRule: { params: {}; response: AsyncResponseWrapper<TriggerRule> };
       saveRule: { params: { rule: TriggerRule; filePath: string; oldRuleId?: string }; response: AsyncResponseWrapper<void> };
       saveAllRules: { params: { rules: TriggerRule[]; baseDir: string }; response: AsyncResponseWrapper<string[]> };
       deleteRule: { params: { filePath: string }; response: AsyncResponseWrapper<boolean> };

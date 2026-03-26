@@ -25,7 +25,8 @@ export {
   INFO_ICON,
   WARNING_ICON,
   NO_PLUGINS_ICON,
-  EDIT_ICON
+  EDIT_ICON,
+  MORE_VERT_ICON
 } from "./icons.js";
 
 // Re-export for convenience

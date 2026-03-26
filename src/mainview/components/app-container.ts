@@ -1,6 +1,7 @@
 import { LitElement, html } from "lit";
 import { customElement, state, query } from "lit/decorators.js";
 import { translate as t } from "lit-i18n";
+import { i18next } from "../defaults/i18n.js";
 //import { invokeRpc } from "../defaults/rpc.js";
 
 // Import components for side-effect registration
@@ -8,9 +9,10 @@ import "./plugin-manager.js";
 import "./rule-manager.js";
 import type { SettingsModal } from "./settings-modal.js";
 import "./settings-modal.js";
+import "./action-menu.js";
 
 // Import icons
-import { APP_ICON, SETTINGS_ICON } from "../styles/index.js";
+import { APP_ICON, SETTINGS_ICON, PLUS_ICON } from "../styles/index.js";
 
 /**
  * Main App Container
@@ -32,6 +34,11 @@ export class AppContainer extends LitElement {
 
   private openSettings(): void {
     this._settingsModal.open();
+  }
+
+  private async addDefaultRule(): Promise<void> {
+    const { invokeRpc } = await import("../../shared/rpc.js");
+    await invokeRpc("createDefaultRule", {});
   }
 
   render() {
@@ -62,6 +69,13 @@ export class AppContainer extends LitElement {
 
           <button
             class="ml-auto bg-transparent border-none p-2 cursor-pointer rounded-full transition-colors flex items-center justify-center text-muted hover:bg-hover hover:text-primary"
+            @click=${this.addDefaultRule}
+            title="${i18next.t("app.addDefaultRule", { defaultValue: "Add Default Rule" })}"
+          >
+            ${PLUS_ICON}
+          </button>
+          <button
+            class="ml-2 bg-transparent border-none p-2 cursor-pointer rounded-full transition-colors flex items-center justify-center text-muted hover:bg-hover hover:text-primary"
             @click=${this.openSettings}
             title="${t("app.settings")}"
           >

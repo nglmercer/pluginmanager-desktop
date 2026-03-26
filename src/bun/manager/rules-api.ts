@@ -6,7 +6,30 @@
 
 import { RulePersistence } from "trigger_system/node";
 import type { TriggerRule } from "trigger_system/node";
-
+import { RuleBuilder } from "trigger_system/node";
+import { randomUUID } from "crypto";
+interface DefaultRuleOptions{
+  event:string;
+  name?:string;
+  description?:string;
+  enabled?:boolean;
+  tags?:string[];
+  filePath?:string;
+}
+function DefaultRule({event,name,description,enabled,tags}:DefaultRuleOptions){
+  const rule = new RuleBuilder()
+  .on(event)
+  .withId(randomUUID())
+  .withName(name || "Default Rule")
+  .withDescription(description || "Default rule")
+  .withEnabled(enabled || true)
+  .withTags(tags || [])
+  .do('log',{
+    message: `${event} triggered`
+  })
+  .build();
+  return rule;
+}
 export interface RulesManagerAPI {
   // Loading
   loadRulesFromDir(dirPath: string): Promise<TriggerRule[]>;
@@ -24,6 +47,7 @@ export interface RulesManagerAPI {
   ruleExists(filePath: string): boolean;
   ensureRulesDir(dirPath: string): void;
   getRuleRawContent(filePath: string): Promise<string>;
+  createDefaultRule(options: DefaultRuleOptions, write?: boolean): TriggerRule;
 }
 
 /**
@@ -148,6 +172,22 @@ export const rulesAPI: RulesManagerAPI = {
       return await file.text();
     } catch (error) {
       console.error(`[RulesAPI] Failed to get raw content from: ${filePath}`, error);
+      throw error;
+    }
+  },
+  /**
+   * Create a default rule
+   */
+  createDefaultRule: (options: DefaultRuleOptions,write:boolean=false): TriggerRule => {
+    try {
+      const rule = DefaultRule(options);
+      const filePath = options.filePath || `${options.event}`;
+      if(write){
+        rulesAPI.saveRule(rule,filePath);
+      }
+      return rule;
+    } catch (error) {
+      console.error(`[RulesAPI] Failed to create default rule:`, error);
       throw error;
     }
   },

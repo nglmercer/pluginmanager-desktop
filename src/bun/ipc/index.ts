@@ -235,6 +235,20 @@ export class IpcHandler {
             return rules;
           },
 
+          // Create default rule
+          createDefaultRule: async (): Promise<TriggerRule> => {
+            const rulesDir = pluginAPI.getRulesDir();
+            const options = {
+              event: "onStart",
+              name: "New Default Rule",
+              description: "Auto-generated rule",
+              enabled: false,
+              filePath: `${rulesDir}/onStart.yaml`
+            };
+            const rule = rulesAPI.createDefaultRule(options, true);
+            return rule;
+          },
+
           // Save a rule
           saveRule: async (params: RPCRequests['saveRule']['params']): Promise<void> => {
             const { rule, filePath, oldRuleId } = params;  // Add oldRuleId param for renames

@@ -25,12 +25,12 @@ export class saveDataPlugin implements IPlugin {
     const {log} = context;
     const registryPlugin = await getRegistryPlugin(context);
     if (!registryPlugin || !registryPlugin.registry) return;
+    let config = await this.loadConfig(context);
 
     registryPlugin.registry.register(ACTIONS.TTS, async (action, ctx) => {
       const msg = String(action.params?.message);
       if (!msg)return;
-
-      const config = await this.loadConfig(context);
+      config = await this.loadConfig(context);
       const api = new ApiExecutor();
       const result = await api.execute({
         url: config.url!,
@@ -49,21 +49,21 @@ export class saveDataPlugin implements IPlugin {
     const {storage} = context;
     const config = this.defaultConfig;
         //ctx.data
-    const defaultMethod = await storage.get<string>("tts.method",config?.method);
-    const defaultUrl = await storage.get<string>("tts.url",config?.url) ;
-    const defaultQuery = await storage.get<Record<string, any>>("tts.query",config?.query);
-    const defaultHeaders = await storage.get<Record<string, any>>("tts.headers",config?.headers);
+    const defaultMethod = await storage.get<string>("method",config?.method);
+    const defaultUrl = await storage.get<string>("url",config?.url) ;
+    const defaultQuery = await storage.get<Record<string, any>>("query",config?.query);
+    const defaultHeaders = await storage.get<Record<string, any>>("headers",config?.headers);
     if (defaultMethod === config?.method) {
-      await storage.set("tts.method",defaultMethod);
+      await storage.set("method",defaultMethod);
     }
     if (defaultUrl === config?.url) {
-      await storage.set("tts.url",defaultUrl);
+      await storage.set("url",defaultUrl);
     }
     if (defaultQuery === config?.query) {
-      await storage.set("tts.query",defaultQuery);
+      await storage.set("query",defaultQuery);
     }
     if (defaultHeaders === config?.headers) {
-      await storage.set("tts.headers",defaultHeaders);
+      await storage.set("headers",defaultHeaders);
     }
     return {
       method: defaultMethod,
