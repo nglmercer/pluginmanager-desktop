@@ -29,7 +29,13 @@ export const es = {
         "themeDark": "Oscuro",
         "close": "Cerrar",
         "tabRules": "Pestaña de reglas",
-        "tabPlugins": "Pestaña de plugins"
+        "tabPlugins": "Pestaña de plugins",
+        "addDefaultRule": "Añadir Regla por Defecto",
+        "uploadRule": "Subir Regla",
+        "uploadPlugin": "Subir Plugin",
+        "openPluginsDir": "Abrir Directorio de Plugins",
+        "openRulesDir": "Abrir Directorio de Reglas",
+        "editRule": "Editar Regla"
       },
       "tab":{
         "plugins": "Plugins",

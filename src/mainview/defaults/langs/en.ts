@@ -29,7 +29,13 @@ export const en = {
         "themeDark": "Dark",
         "close": "Close",
         "tabRules": "Rules tab",
-        "tabPlugins": "Plugins tab"
+        "tabPlugins": "Plugins tab",
+        "addDefaultRule": "Add Default Rule",
+        "uploadRule": "Upload Rule",
+        "uploadPlugin": "Upload Plugin",
+        "openPluginsDir": "Open Plugins Directory",
+        "openRulesDir": "Open Rules Directory",
+        "editRule": "Edit Rule"
       },
       "tab":{
         "plugins": "Plugins",
