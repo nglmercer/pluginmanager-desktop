@@ -1,7 +1,17 @@
 import type { IPlugin, PluginContext } from "bun_plugins";
 import { PLUGIN_NAMES, ACTIONS, PLATFORMS } from "../src/bun/constants";
 import { getRegistryPlugin, parseData } from "./shared";
-
+import { mkdir,readdir } from "node:fs/promises";
+async function ensureDir(path: string) {
+  try {
+    const exists = await readdir(path).catch(() => false);
+    if (!exists) {
+      await mkdir(path, { recursive: true });
+    }
+  } catch (error) {
+    console.error("[Storage] Error ensuring directory.", error);
+  }
+}
 export class saveDataPlugin implements IPlugin {
   name = PLUGIN_NAMES.SAVE_EVENTS;
   description = "Saves event data to files and keeps an in-memory cache";
@@ -63,7 +73,8 @@ export class saveDataPlugin implements IPlugin {
     try {
       const dataPath = "./data";
       const glob = new Bun.Glob("*.json");
-
+      // fix when data folder not exist return 
+      await ensureDir(dataPath);
       for await (const file of glob.scan({ cwd: dataPath })) {
         const eventName = file.replace(".json", "");
         

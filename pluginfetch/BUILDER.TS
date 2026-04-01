@@ -4,7 +4,8 @@ const files = ["savedata.ts","tts.ts"].map(file => join(import.meta.dir, file));
 async function build() {
     const result = await Bun.build({
       entrypoints: files,
-      outdir: './dist'
+      outdir: './dist',
+      target: 'bun'
     });
   return result;
 }

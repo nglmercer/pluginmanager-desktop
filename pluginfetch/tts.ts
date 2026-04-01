@@ -29,14 +29,16 @@ export class saveDataPlugin implements IPlugin {
     let config = await this.loadConfig(context);
 
     registryPlugin.registry.register(ACTIONS.TTS, async (action, ctx) => {
-      const msg = String(action.params?.message);
-      if (!msg)return;
+      if (!action.params) return;
+      const {message} = action.params;
+      if (!message || typeof message !== 'string') return;
+      // { message: "text" }
       config = await this.loadConfig(context);
       const api = new ApiExecutor();
       const result = await api.execute({
         url: config.url!,
         method: (config.method! as "POST" | "GET" | "PUT" | "DELETE") || "POST",
-        body: msg,
+        body: String(message),
         query: config.query,
         headers: config.headers
       }).catch(err => {
