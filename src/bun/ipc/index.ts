@@ -578,9 +578,7 @@ export class IpcHandler {
               
               // Track this file as the current editor file
               this.currentEditorFilePath = filePath;
-              
-              // Give the window a tiny bit of time to initialize if it's new
-              setTimeout(() => {
+              const sendData = () => {
                 // Broadcast the content to all webviews
                 this.broadcastToWebview(IPC_EVENTS.EDITOR_IMPORT, {
                   format,
@@ -594,8 +592,9 @@ export class IpcHandler {
                   format,
                   payload: content
                 });
-              }, 2000);
-              
+              };
+              setTimeout(sendData, 1000);
+              setTimeout(() => sendData(), 2000);
               return;
             } catch (error) {
               console.error(`[IPC] Failed to load rule for editor: ${filePath}`, error);

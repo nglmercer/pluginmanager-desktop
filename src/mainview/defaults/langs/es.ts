@@ -35,7 +35,8 @@ export const es = {
         "uploadPlugin": "Subir Plugin",
         "openPluginsDir": "Abrir Directorio de Plugins",
         "openRulesDir": "Abrir Directorio de Reglas",
-        "editRule": "Editar Regla"
+        "editRule": "Editar Regla",
+        "sortBy": "Ordenar por"
       },
       "tab":{
         "plugins": "Plugins",

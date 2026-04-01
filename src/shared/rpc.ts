@@ -85,6 +85,9 @@ window.addEventListener('message', (event) => {
     if (data.type === PLUGIN_NAMES.ACTION_REGISTRY){
       window.triggerEditor.addAutocompleteData?.(PLUGIN_NAMES.ACTION_REGISTRY, data.data, 'value' as 'path' | 'value');
     }
+    if (data.type === PLUGIN_NAMES.SAVE_EVENTS){
+      window.triggerEditor.addAutocompleteData?.(PLUGIN_NAMES.SAVE_EVENTS, data.data, 'value' as 'path' | 'value');
+    }
   }
   if (data.type === EXPORT_CLICKED) {
     console.log('[RPC] Relaying TRIGGER_EDITOR_EXPORT to Bun');
