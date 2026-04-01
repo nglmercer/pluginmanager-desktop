@@ -25,11 +25,12 @@ export class IpcHandler {
   private editorWindow: BrowserWindow | null = null;
   // Type this as the result of defineRPC, using the full schema
   private rpc: ReturnType<typeof BrowserView.defineRPC<PluginManagerRPC>> | null = null;
-
+  private callback?: (eventName?: string) => void;
   /**
    * Initialize RPC and setup event listeners
    */
-  constructor() {
+  constructor(cb?: (eventName?: string) => void) {
+    this.callback = cb;
     this.setupRpc();
   }
 
@@ -796,13 +797,19 @@ export class IpcHandler {
     if (url.includes("mainview")) {
         this.mainWindow = win;
     }
+    const events = ['dom-ready', 'focus','close']
     win.webview.on('dom-ready',() => {
       console.log("[IPC] Window dom-ready");
         this.setupRpc();
+        if (this.callback) {
+          this.callback(events[0]);
+        }
     });
     win.on('focus', () => {
         this.lastFocusedWindow = win;
-    //    this.setupRpc();
+        if (this.callback) {
+          this.callback(events[1]);
+        }
     });
     win.on('close', () => {
         this.windows.delete(win);
@@ -812,11 +819,16 @@ export class IpcHandler {
         if (this.lastFocusedWindow === win) {
             this.lastFocusedWindow = Array.from(this.windows)[0] || null;
         }
+        if (this.callback) {
+          this.callback(events[2]);
+        }
     });
 
     return win;
   }
-
+  setCallback(callback: (event?: string) => void): void {
+    this.callback = callback;
+  }
   /**
    * Focus the window
    */

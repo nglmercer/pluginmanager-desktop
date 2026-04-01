@@ -17,50 +17,26 @@ export async function getRegistryPlugin(context: PluginContext){
     )) as ActionRegistryApi;
     return registryPlugin
 }
-export type RequestConfig = {
-  url: string;
-  method: 'GET' | 'POST' | 'PUT' | 'DELETE';
-  query?: Record<string, string>;
-  headers?: Record<string, string>;
-  body?: string | object;
-};
 
-export class ApiExecutor {
-  private defaults: Partial<RequestConfig>;
+export function parseData(data: unknown) {
+  if (data === null || data === undefined) return null;
 
-  constructor(defaults: Partial<RequestConfig> = {}) {
-    this.defaults = {
-      headers: { 'Content-Type': 'application/json' },
-      ...defaults
-    };
+  // Si ya es un objeto, lo devolvemos (clonado para evitar mutaciones)
+  if (typeof data === 'object') {
+    return Array.isArray(data) ? [...data] : { ...data };
   }
 
-  /**
-   * Replaces placeholders in the body or URL
-   * e.g., replaceVariables("Hello {name}", { name: "World" }) -> "Hello World"
-   */
-  private replaceVariables(template: string, vars: Record<string, string>): string {
-    return template.replace(/{(\w+)}/g, (_, key) => vars[key] || `{${key}}`);
-  }
-
-  async execute(config: RequestConfig, vars: Record<string, string> = {}) {
-    const finalUrl = this.replaceVariables(config.url, vars);
-    const finalBody = typeof config.body === 'string' 
-      ? this.replaceVariables(config.body, vars) 
-      : config.body;
-
-    const url = new URL(finalUrl);
-    if (config.query) {
-      Object.entries(config.query).forEach(([k, v]) => url.searchParams.append(k, v));
+  try {
+    if (typeof data === 'string') {
+      const trimmed = data.trim();
+      // Validar que parece JSON (empieza con { o [)
+      if (trimmed.startsWith('{') || trimmed.startsWith('[')) {
+        return JSON.parse(trimmed);
+      }
     }
-
-    const response = await fetch(url.toString(), {
-      method: config.method || this.defaults.method,
-      headers: { ...this.defaults.headers, ...config.headers },
-      body: typeof finalBody === 'object' ? JSON.stringify(finalBody) : finalBody,
-    });
-
-    if (!response.ok) throw new Error(`HTTP Error: ${response.status}`);
-    return response.json().catch(() => response.text());
+  } catch (e) {
+    return { error: "Invalid JSON", data }
   }
+
+  return null;
 }

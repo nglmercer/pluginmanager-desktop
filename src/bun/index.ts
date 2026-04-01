@@ -4,8 +4,9 @@ import { TrayClickedEvent } from "./index.d";
 import { main } from "./pluginmanager";
 import { ontrayevent, MenuBuilder } from "./constants/tray";
 import { ipcHandler } from "./ipc";
-import { PLATFORMS } from "./constants";
+import { PLATFORMS, PLUGIN_NAMES } from "./constants";
 import { triggerEmitter } from 'trigger_system/node';
+import type { IPlugin } from 'bun_plugins';
 import { helpers } from "./manager/defaults/helpers";
 /**
  * Plugin Manager - Modular Entry Point
@@ -55,6 +56,29 @@ main().then((result) => {
 	const { manager, engine } = result;
 	// Initialize IPC with plugin manager
 	ipcHandler.initialize(manager);
+	ipcHandler.setCallback(async (event) => {
+		if (event === 'focus' || event === 'dom-ready') {
+			const info = manager.actionRegistryPlugin?.registry.getDefinitions() || {};
+			// add key to each item in info
+			const infoWithKey = Object.fromEntries(
+				Object.entries(info).map(([key, value]) => [key, { ...value, key }])
+			);
+			ipcHandler.postMessageToWebview({type: PLUGIN_NAMES.ACTION_REGISTRY, data: infoWithKey});
+			const savePlugin = manager.getPlugin(PLUGIN_NAMES.SAVE_EVENTS);
+			//  private eventCache = new Map<string, any>();
+			interface savePT extends IPlugin {
+				eventCache: Map<string, any>;
+				getData: () => Promise<any>;
+			}
+			if (savePlugin) {
+				const SAVE_EVENTS = savePlugin as savePT;
+				await SAVE_EVENTS?.getData?.();
+				ipcHandler.postMessageToWebview({type: PLUGIN_NAMES.SAVE_EVENTS, data: SAVE_EVENTS?.eventCache});
+			}
+		}
+		
+	});
+	//ipcHandler.broadcastToWebview(PLUGIN_NAMES.ACTION_REGISTRY,manager.actionRegistryPlugin?.registry.getDefinitions() || {});
 	triggerEmitter.on('action:error', (error) => {
 		ipcHandler.broadcastToWebview('action-error', error);
 		

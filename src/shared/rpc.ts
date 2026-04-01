@@ -1,6 +1,6 @@
 import { Electroview } from "electrobun/view";
 import type { PluginManagerRPC } from "./types";
-
+import { PLUGIN_NAMES } from "../bun/constants";
 // Type for async callback resolving
 type Resolver = (data: unknown) => void;
 type Rejecter = (error: Error) => void;
@@ -64,15 +64,28 @@ declare global {
   interface Window {
     // add you custom properties and methods
     logs?: boolean
+    triggerEditor?: {
+      importJson?: (json: string | object) => void;
+      importYaml?: (yaml: string) => void;
+      requestExport?: () => void;
+      clear?: () => void;
+      addAutocompleteData?: (alias: string, data: any, mode?: 'path' | 'value') => void;
+      removeAutocompleteData?: (alias: string) => void;
+      testEvent?: (eventName: string, data?: Record<string, any>, vars?: Record<string, any>, state?: Record<string, any>) => Promise<any>;
+    };
   }
 }
-window.logs = false
+window.logs = true
 
 window.addEventListener('message', (event) => {
   const { data } = event;
   if (!data || typeof data !== 'object') return;
   if (window.logs) console.log('[RPC] Message from Editor:', data);
-  
+  if (window.triggerEditor) {
+    if (data.type === PLUGIN_NAMES.ACTION_REGISTRY){
+      window.triggerEditor.addAutocompleteData?.(PLUGIN_NAMES.ACTION_REGISTRY, data.data, 'value' as 'path' | 'value');
+    }
+  }
   if (data.type === EXPORT_CLICKED) {
     console.log('[RPC] Relaying TRIGGER_EDITOR_EXPORT to Bun');
     electroview.rpc!.send.editorExported(data.payload);

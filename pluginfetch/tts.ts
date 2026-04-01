@@ -1,6 +1,7 @@
 import type { IPlugin, PluginContext } from "bun_plugins";
 import { PLUGIN_NAMES, ACTIONS } from "../src/bun/constants";
-import { getRegistryPlugin,ApiExecutor } from "./shared";
+import { getRegistryPlugin } from "./shared";
+import { ApiExecutor } from "./apifetch";
 
 //        context?.emit(PLATFORMS.SYSTEM, { eventName: 'TTS', data: {message: "text"} });
 export class saveDataPlugin implements IPlugin {
