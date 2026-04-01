@@ -406,19 +406,43 @@ export class IpcHandler {
               return { success: false, error: "File path not found" };
             }
 
-            // Update enabled state in memory (registry)
-            const updated = registry.update(ruleId, { enabled: params.enabled });
+            // Load current file content directly to ensure we have the most accurate list
+            // especially during concurrent loads/saves
+            const rulesInFile = await RulePersistence.loadFile(filePath);
+            const existingRuleIndex = rulesInFile.findIndex(r => r.id === ruleId);
             
-            // Workaround: map the updated rule back into the file's rule list to ensure latest data is saved
-            const rulesInFile = registry.getRulesByFile(filePath).map(r => r.id === ruleId ? updated : r);
-            await RulePersistence.saveRulesToFile(rulesInFile, filePath);
-            registry.markFileAsSaved(filePath);
-            
-            // Update engine
-            this.manager.updateEngineFromRegistry();
-            
-            console.log(`[IPC] Toggled rule ${ruleId} to ${params.enabled} and saved ${filePath}`);
-            return { success: true };
+            if (existingRuleIndex !== -1) {
+              // Update rule in the loaded list
+              rulesInFile[existingRuleIndex].enabled = params.enabled;
+              
+              // Save back to file
+              await RulePersistence.saveRulesToFile(rulesInFile, filePath);
+              registry.markFileAsSaved(filePath);
+              
+              // Sync memory registry
+              registry.update(ruleId, { enabled: params.enabled });
+              
+              // Update engine
+              this.manager.updateEngineFromRegistry();
+              
+              console.log(`[IPC] Toggled rule ${ruleId} to ${params.enabled} and saved ${filePath}`);
+              return { success: true };
+            } else {
+              // Fallback: rule might have been registered with a wrong ID or file mapping
+              // Update in registry anyway and try to save registry's view
+              const updated = registry.update(ruleId, { enabled: params.enabled });
+              const registryRulesInFile = registry.getRulesByFile(filePath);
+              
+              if (registryRulesInFile.length > 0) {
+                 const finalRules = registryRulesInFile.map(r => r.id === ruleId ? updated : r);
+                 await RulePersistence.saveRulesToFile(finalRules, filePath);
+                 registry.markFileAsSaved(filePath);
+                 this.manager.updateEngineFromRegistry();
+                 return { success: true };
+              }
+              
+              return { success: false, error: "Rule not found in file" };
+            }
           },
 
           // Delete rule by ID
@@ -437,19 +461,19 @@ export class IpcHandler {
             // Remove from registry
             const removed = registry.remove(ruleId);
             if (removed) {
-              // Workaround for library inconsistency: manually filter rules to ensure it's removed from file list
-              const remainingRules = registry.getRulesByFile(filePath).filter(r => r.id !== ruleId);
-              console.log(`[IPC] Remaining rules in ${filePath} (after filtering): ${remainingRules.length} (${remainingRules.map(r => r.id).join(', ')})`);
+              // Same atomic strategy: read-modify-save the file directly
+              const rulesInFile = await RulePersistence.loadFile(filePath);
+              const remainingRules = rulesInFile.filter(r => r.id !== ruleId);
               
               if (remainingRules.length > 0) {
-                // If there are other rules in the same file, update the file
+                // Update file with remaining rules
                 await RulePersistence.saveRulesToFile(remainingRules, filePath);
                 registry.markFileAsSaved(filePath);
-                console.log(`[IPC] Removed rule ${ruleId} from file, kept ${remainingRules.length} rules`);
+                console.log(`[IPC] Removed rule ${ruleId} from file ${filePath}, kept ${remainingRules.length} rules`);
               } else {
-                // If it was the last rule in the file, delete the file
+                // Last rule in file, delete the file
                 await RulePersistence.deleteFile(filePath);
-                console.log(`[IPC] Deleted file ${filePath} because it had no more rules`);
+                console.log(`[IPC] Deleted file ${filePath} because rule ${ruleId} was the last one`);
               }
               
               this.manager.updateEngineFromRegistry();
@@ -570,7 +594,7 @@ export class IpcHandler {
                   format,
                   payload: content
                 });
-              }, 1000);
+              }, 2000);
               
               return;
             } catch (error) {

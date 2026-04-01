@@ -1,5 +1,6 @@
 import { PluginManager } from "bun_plugins";
 import { RuleEngine, RuleRegistry, RulePersistence } from "trigger_system/node";
+import type { TriggerRule } from "trigger_system/node";
 import { join } from "node:path";
 import * as fs from "node:fs/promises";
 import { actionRegistryPlugin, ActionRegistryPlugin } from "./Register";
@@ -15,6 +16,7 @@ export class BasePluginManager extends PluginManager {
   public engine: RuleEngine;
   public registry: RuleRegistry;
   public alreadyLoaded: boolean = false;
+  public isReloadingRules: boolean = false;
   public actionRegistryPlugin: ActionRegistryPlugin | null = null;
   public pluginsDir = join(getBaseDir(), PATHS.PLUGINS_DIR);
   public rulesDir = join(getBaseDir(), PATHS.RULES_DIR);
@@ -131,29 +133,39 @@ export class BasePluginManager extends PluginManager {
    * Load rules from the rules directory into the registry and engine
    */
   public async loadRules(): Promise<void> {
+    if (this.isReloadingRules) return;
+    this.isReloadingRules = true;
+    
     console.log(`[PluginManager] Loading rules from ${this.rulesDir}`);
     try {
-      this.registry.clear();
-      
       const files = await fs.readdir(this.rulesDir);
-      const yamlFiles = files.filter(f => f.endsWith('.yaml') || f.endsWith('.yml'));
+      const yamlFiles = files.filter(f => f.endsWith('.yaml') || f.endsWith('.yml') || f.endsWith('.json'));
+      
+      const allLoaded: {rules: TriggerRule[], path: string}[] = [];
       
       for (const file of yamlFiles) {
         const filePath = join(this.rulesDir, file);
         try {
           const rules = await RulePersistence.loadFile(filePath);
-          if (rules.length > 0) {
-            this.registry.registerAll(rules, filePath);
-            console.log(`[PluginManager] Loaded ${rules.length} rules from ${file}`);
+          if (rules && rules.length > 0) {
+            allLoaded.push({ rules, path: filePath });
           }
         } catch (error) {
           console.error(`[PluginManager] Failed to load rules from ${file}:`, error);
         }
       }
+
+      // Atomic-ish swap: clear only when we have the new data ready
+      this.registry.clear();
+      for (const item of allLoaded) {
+        this.registry.registerAll(item.rules, item.path);
+      }
       
       this.updateEngineFromRegistry();
     } catch (error) {
       console.error(`[PluginManager] Failed to read rules directory:`, error);
+    } finally {
+      this.isReloadingRules = false;
     }
   }
 

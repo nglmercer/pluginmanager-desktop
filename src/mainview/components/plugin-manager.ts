@@ -1,10 +1,10 @@
 import { LitElement, html } from "lit";
-import { customElement, state } from "lit/decorators.js";
+import { customElement, state, property } from "lit/decorators.js";
 import { i18next } from "../defaults/i18n.js";
 import { invokeRpc } from "../../shared/rpc.js";
 import type { PluginInfo, ActionResult } from "../types.js";
 
-// Register child component
+// Register child components
 import "./plugin-list.js";
 
 /**
@@ -19,10 +19,20 @@ export class PluginManager extends LitElement {
 
   @state() private plugins: PluginInfo[] = [];
   @state() private loading: boolean = false;
+  @state() private isInitialLoad: boolean = true;
   @state() private error: string = "";
   @state() private success: string = "";
+  
+  @property({ type: String }) sortBy: string = "name";
+  @property({ type: String }) sortOrder: 'asc' | 'desc' = "asc";
 
   private _pollInterval?: ReturnType<typeof setInterval>;
+
+  updated(changedProperties: Map<string, any>) {
+    if (changedProperties.has('sortBy') || changedProperties.has('sortOrder')) {
+      this.plugins = this.sort(this.plugins);
+    }
+  }
 
   connectedCallback() {
     super.connectedCallback();
@@ -39,22 +49,57 @@ export class PluginManager extends LitElement {
   }
 
   private async loadPlugins(): Promise<void> {
-    try {
-      const result = await invokeRpc("getPlugins", {}) as PluginInfo[];
-      this.plugins = result || [];
-    } catch (e: unknown) {
-      this.error = i18next.t("messages.loadFailed", { error: (e as Error).message });
+    if (this.isInitialLoad) {
+      this.loading = true;
     }
+    try {
+      const result = (await invokeRpc("getPlugins", {})) as PluginInfo[];
+      this.plugins = this.sort(result || []);
+    } catch (e: unknown) {
+      console.error("Failed to load plugins:", e);
+      this.error = i18next.t("messages.loadFailed", { error: (e as Error).message });
+    } finally {
+      this.loading = false;
+      this.isInitialLoad = false;
+    }
+  }
+
+  private sort(plugins: PluginInfo[]): PluginInfo[] {
+    return [...plugins].sort((a, b) => {
+      let valA: any, valB: any;
+      
+      switch (this.sortBy) {
+        case "id":
+          valA = (a.id || "").toLowerCase();
+          valB = (b.id || "").toLowerCase();
+          break;
+        case "enabled":
+          valA = a.enabled ? 0 : 1;
+          valB = b.enabled ? 0 : 1;
+          break;
+        case "version":
+          valA = a.version.toLowerCase();
+          valB = b.version.toLowerCase();
+          break;
+        case "name":
+        default:
+          valA = a.name.toLowerCase();
+          valB = b.name.toLowerCase();
+          break;
+      }
+
+      let comparison = 0;
+      if (valA < valB) comparison = -1;
+      if (valA > valB) comparison = 1;
+
+      return this.sortOrder === "asc" ? comparison : -comparison;
+    });
   }
 
   private async removePlugin(pluginName: string): Promise<void> {
     if (!(await confirm(i18next.t("messages.removeConfirm", { name: pluginName })))) {
       return;
     }
-
-    this.loading = true;
-    this.error = "";
-    this.success = "";
 
     try {
       const result = await invokeRpc("removePlugin", {
@@ -70,7 +115,7 @@ export class PluginManager extends LitElement {
     } catch (e: unknown) {
       this.error = i18next.t("messages.removeFailed", { error: (e as Error).message || "Removal failed" });
     } finally {
-      this.loading = false;
+      // No global loading here, PluginList handles per-item locking
     }
   }
 

@@ -7,6 +7,7 @@ import { i18next } from "../defaults/i18n.js";
 // Import components for side-effect registration
 import "./plugin-manager.js";
 import "./rule-manager.js";
+import "./sort-bar.js";
 import type { SettingsModal } from "./settings-modal.js";
 import "./settings-modal.js";
 import "./action-menu.js";
@@ -25,11 +26,20 @@ export class AppContainer extends LitElement {
   }
 
   @state() private activeTab: "plugins" | "rules" = "plugins";
+  @state() private sortBy: string = "name";
+  @state() private sortOrder: "asc" | "desc" = "asc";
 
   @query("settings-modal") private _settingsModal!: SettingsModal;
 
   private switchTab(tab: "plugins" | "rules"): void {
     this.activeTab = tab;
+    // Reset sort when switching tabs if needed, or keep it if common fields exist
+    this.sortBy = "name"; 
+  }
+
+  private handleSortChange(e: CustomEvent<{ field: string; order: 'asc' | 'desc' }>) {
+    this.sortBy = e.detail.field;
+    this.sortOrder = e.detail.order;
   }
 
   private openSettings(): void {
@@ -115,25 +125,48 @@ export class AppContainer extends LitElement {
             ${t("tab.rules")}
           </button>
 
-          <button
-            class="ml-auto bg-transparent border-none p-2 cursor-pointer rounded-full transition-colors flex items-center justify-center text-muted hover:bg-hover hover:text-primary"
-            @click=${this.openSettings}
-            title="${t("app.settings")}"
-          >
-            ${SETTINGS_ICON}
-          </button>
-          
-          <button
-            class="ml-2 bg-transparent border-none p-2 cursor-pointer rounded-full transition-colors flex items-center justify-center text-muted hover:bg-hover hover:text-primary"
-            @click=${this.openGlobalMenu}
-            title="${i18next.t("app.moreOptions", { defaultValue: "More options" })}"
-          >
-            ${MORE_VERT_ICON}
-          </button>
+          <div class="ml-auto flex items-center gap-2 pr-2 border-l border-border h-8 my-auto pl-4">
+             <sort-bar 
+                class="scale-90 origin-right"
+                .currentField=${this.sortBy}
+                .currentOrder=${this.sortOrder}
+                .fields=${this.activeTab === 'plugins' 
+                  ? [
+                      { id: "name", label: "Name" },
+                      { id: "id", label: "ID" },
+                      { id: "enabled", label: "Status" },
+                      { id: "version", label: "Version" }
+                    ]
+                  : [
+                      { id: "name", label: "Name" },
+                      { id: "id", label: "ID" },
+                      { id: "enabled", label: "Status" },
+                      { id: "platform", label: "Platform" }
+                    ]
+                }
+                @sort-change=${this.handleSortChange}
+             ></sort-bar>
+
+            <button
+              class="bg-transparent border-none p-2 cursor-pointer rounded-full transition-colors flex items-center justify-center text-muted hover:bg-hover hover:text-primary"
+              @click=${this.openSettings}
+              title="${t("app.settings")}"
+            >
+              ${SETTINGS_ICON}
+            </button>
+            
+            <button
+              class="bg-transparent border-none p-2 cursor-pointer rounded-full transition-colors flex items-center justify-center text-muted hover:bg-hover hover:text-primary"
+              @click=${this.openGlobalMenu}
+              title="${i18next.t("app.moreOptions", { defaultValue: "More options" })}"
+            >
+              ${MORE_VERT_ICON}
+            </button>
+          </div>
         </div>
 
-        ${this.activeTab === 'plugins' ? html`<plugin-manager></plugin-manager>` : ''}
-        ${this.activeTab === 'rules' ? html`<rule-manager></rule-manager>` : ''}
+        ${this.activeTab === 'plugins' ? html`<plugin-manager .sortBy=${this.sortBy} .sortOrder=${this.sortOrder}></plugin-manager>` : ''}
+        ${this.activeTab === 'rules' ? html`<rule-manager .sortBy=${this.sortBy} .sortOrder=${this.sortOrder}></rule-manager>` : ''}
 
         <settings-modal></settings-modal>
       </div>

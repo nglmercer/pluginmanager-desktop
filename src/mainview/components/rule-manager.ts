@@ -1,10 +1,10 @@
 import { LitElement, html } from "lit";
-import { customElement, state } from "lit/decorators.js";
+import { customElement, state, property } from "lit/decorators.js";
 import { i18next } from "../defaults/i18n.js";
 import { invokeRpc } from "../../shared/rpc.js";
 import type { RuleInfo } from "../types.js";
 
-// Register child component
+// Register child components
 import "./rule-list.js";
 
 /**
@@ -19,10 +19,20 @@ export class RuleManager extends LitElement {
 
   @state() private rules: RuleInfo[] = [];
   @state() private loading: boolean = false;
+  @state() private isInitialLoad: boolean = true;
   @state() private error: string = "";
   @state() private success: string = "";
+  
+  @property({ type: String }) sortBy: string = "name";
+  @property({ type: String }) sortOrder: 'asc' | 'desc' = "asc";
 
   private _pollInterval?: ReturnType<typeof setInterval>;
+
+  updated(changedProperties: Map<string, any>) {
+    if (changedProperties.has('sortBy') || changedProperties.has('sortOrder')) {
+      this.rules = this.sort(this.rules);
+    }
+  }
 
   connectedCallback() {
     super.connectedCallback();
@@ -39,22 +49,57 @@ export class RuleManager extends LitElement {
   }
 
   private async loadRules(): Promise<void> {
-    try {
-      const result = await invokeRpc("getRules", {}) as RuleInfo[];
-      this.rules = result || [];
-    } catch (e: unknown) {
-      this.error = i18next.t("messages.loadFailed", { error: (e as Error).message });
+    if (this.isInitialLoad) {
+      this.loading = true;
     }
+    try {
+      const result = (await invokeRpc("getRules", {})) as RuleInfo[];
+      this.rules = this.sort(result || []);
+    } catch (e: unknown) {
+      console.error("Failed to load rules:", e);
+      this.error = i18next.t("messages.loadFailed", { error: (e as Error).message });
+    } finally {
+      this.loading = false;
+      this.isInitialLoad = false;
+    }
+  }
+
+  private sort(rules: RuleInfo[]): RuleInfo[] {
+    return [...rules].sort((a, b) => {
+      let valA: any, valB: any;
+      
+      switch (this.sortBy) {
+        case "id":
+          valA = a.id.toLowerCase();
+          valB = b.id.toLowerCase();
+          break;
+        case "enabled":
+          valA = a.enabled ? 0 : 1;
+          valB = b.enabled ? 0 : 1;
+          break;
+        case "platform":
+          valA = a.platform.toLowerCase();
+          valB = b.platform.toLowerCase();
+          break;
+        case "name":
+        default:
+          valA = (a.name || a.id).toLowerCase();
+          valB = (b.name || b.id).toLowerCase();
+          break;
+      }
+
+      let comparison = 0;
+      if (valA < valB) comparison = -1;
+      if (valA > valB) comparison = 1;
+
+      return this.sortOrder === "asc" ? comparison : -comparison;
+    });
   }
 
   private async deleteRule(ruleId: string): Promise<void> {
     if (!(await confirm(i18next.t("messages.deleteRuleConfirm", { id: ruleId })))) {
       return;
     }
-
-    this.loading = true;
-    this.error = "";
-    this.success = "";
 
     try {
       const result = await invokeRpc("deleteRuleById", {
@@ -70,7 +115,7 @@ export class RuleManager extends LitElement {
     } catch (e: unknown) {
       this.error = i18next.t("messages.deleteRuleFailed", { error: (e as Error).message || "Deletion failed" });
     } finally {
-      this.loading = false;
+      // No global loading here, RuleList handles per-item locking
     }
   }
 

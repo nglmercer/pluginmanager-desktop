@@ -1,5 +1,6 @@
 import { LitElement, html } from "lit";
-import { customElement, property } from "lit/decorators.js";
+import { customElement, property, state } from "lit/decorators.js";
+import { repeat } from "lit/directives/repeat.js";
 import { translate as t } from "lit-i18n";
 import { i18next } from "../defaults/i18n.js";
 import type { RuleInfo } from "../types.js";
@@ -19,8 +20,21 @@ export class RuleList extends LitElement {
 
   @property({ type: Array }) rules: RuleInfo[] = [];
   @property({ type: Boolean }) loading: boolean = false;
+  @state() private processingIds: Set<string> = new Set();
 
-  private handleDelete(ruleId: string): void {
+  private setProcessing(id: string, processing: boolean) {
+    if (processing) {
+      this.processingIds.add(id);
+    } else {
+      this.processingIds.delete(id);
+    }
+    this.requestUpdate();
+  }
+
+  private async handleDelete(ruleId: string): Promise<void> {
+    if (this.processingIds.has(ruleId)) return;
+    
+    this.setProcessing(ruleId, true);
     this.dispatchEvent(
       new CustomEvent("rule-delete", {
         detail: { ruleId },
@@ -28,39 +42,55 @@ export class RuleList extends LitElement {
         composed: true,
       })
     );
+    // Note: Deletion usually causes the whole component to re-render 
+    // with a new list, so we don't necessarily need to clear processingIds here
+    // but it's good practice.
+    setTimeout(() => this.setProcessing(ruleId, false), 1000);
   }
 
   private async handleToggle(ruleId: string, enabled: boolean): Promise<void> {
+    if (this.processingIds.has(ruleId)) return;
+    
+    this.setProcessing(ruleId, true);
     const { invokeRpc } = await import("../../shared/rpc.js");
     try {
       await invokeRpc("toggleRule", { ruleId, enabled });
     } catch (e) {
       console.error("Failed to toggle rule:", e);
+    } finally {
+      this.setProcessing(ruleId, false);
     }
   }
 
   private async handleEdit(rule: RuleInfo): Promise<void> {
+    if (this.processingIds.has(rule.id)) return;
     if (!rule.filePath) {
       console.error("Cannot edit rule: No file path provided");
       return;
     }
 
+    this.setProcessing(rule.id, true);
     const { invokeRpc } = await import("../../shared/rpc.js");
     try {
       console.log(`[RuleList] Loading rule into editor: ${rule.filePath}`);
       await invokeRpc("loadRuleInEditor", { filePath: rule.filePath });
     } catch (e) {
       console.error("Failed to load rule in editor:", e);
+    } finally {
+      this.setProcessing(rule.id, false);
     }
   }
 
   private async handleOpenRuleFolder(rule: RuleInfo): Promise<void> {
-    if (!rule.filePath) return;
+    if (!rule.filePath || this.processingIds.has(rule.id)) return;
+    this.setProcessing(rule.id, true);
     const { invokeRpc } = await import("../../shared/rpc.js");
     try {
       await invokeRpc("openRuleFolder", { filePath: rule.filePath });
     } catch (e) {
       console.error("Failed to open rule folder:", e);
+    } finally {
+      this.setProcessing(rule.id, false);
     }
   }
 
@@ -108,58 +138,70 @@ export class RuleList extends LitElement {
 
     return html`
       <div class="flex flex-col gap-[10px]">
-        ${this.rules.map(
-          (rule) => html`
-            <div class="flex justify-between items-center p-[15px] bg-card rounded-md border border-border transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md hover:border-primary">
-              <div class="flex-1">
-                <div class="flex items-center gap-[10px] mb-1">
-                  <span class="text-primary font-semibold text-[1.1rem]">${rule.name || rule.id}</span>
-                  <span class="text-muted text-[12px] py-0.5 px-1.5 bg-hover rounded-md">${rule.platform}</span>
+        ${repeat(
+          this.rules,
+          (rule) => rule.id,
+          (rule) => {
+            const isProcessing = this.processingIds.has(rule.id);
+            return html`
+              <div 
+                class="flex justify-between items-center p-[15px] bg-card rounded-md border border-border transition-all duration-200 
+                ${isProcessing ? 'opacity-60 cursor-wait' : 'hover:-translate-y-0.5 hover:shadow-md hover:border-primary'}"
+              >
+                <div class="flex-1 ${isProcessing ? 'pointer-events-none' : ''}">
+                  <div class="flex items-center gap-[10px] mb-1">
+                    <span class="text-primary font-semibold text-[1.1rem]">${rule.name || rule.id}</span>
+                    <span class="text-muted text-[12px] py-0.5 px-1.5 bg-hover rounded-md">${rule.platform}</span>
+                    ${isProcessing ? html`
+                      <div class="w-3.5 h-3.5 border-2 border-primary/20 border-t-primary rounded-full animate-spin"></div>
+                    ` : ""}
+                  </div>
+                  ${rule.description
+                    ? html`
+                        <div class="text-muted text-[13px] mt-1 leading-[1.4]">
+                          ${rule.description}
+                        </div>
+                      `
+                    : html`<div class="text-muted text-[13px] mt-1 leading-[1.4]">${t("app.noDescription")}</div>`}
+                  ${rule.tags && rule.tags.length > 0
+                    ? html`
+                        <div class="flex gap-[5px] mt-2">
+                          ${rule.tags.map(
+                            (tag: string) => html`
+                              <span class="text-[11px] py-0.5 px-1.5 bg-hover rounded text-muted">
+                                ${tag}
+                              </span>
+                            `
+                          )}
+                        </div>
+                      `
+                    : ""}
                 </div>
-                ${rule.description
-                  ? html`
-                      <div class="text-muted text-[13px] mt-1 leading-[1.4]">
-                        ${rule.description}
-                      </div>
-                    `
-                  : html`<div class="text-muted text-[13px] mt-1 leading-[1.4]">${t("app.noDescription")}</div>`}
-                ${rule.tags && rule.tags.length > 0
-                  ? html`
-                      <div class="flex gap-[5px] mt-2">
-                        ${rule.tags.map(
-                          (tag: string) => html`
-                            <span class="text-[11px] py-0.5 px-1.5 bg-hover rounded text-muted">
-                              ${tag}
-                            </span>
-                          `
-                        )}
-                      </div>
-                    `
-                  : ""}
-              </div>
-              <div class="flex items-center gap-3">
-                <label class="relative inline-block w-10 h-5 mr-1" title="${rule.enabled ? t("app.disable") : t("app.enable")}">
-                  <input
-                    type="checkbox"
-                    class="opacity-0 w-0 h-0"
-                    ?checked=${rule.enabled}
-                    @change=${(e: Event) => this.handleToggle(rule.id, (e.target as HTMLInputElement).checked)}
-                  />
-                  <span class="slider absolute cursor-pointer inset-0 bg-border transition-all duration-400 rounded-[20px] checked:bg-success"></span>
-                </label>
+                <div class="flex items-center gap-3">
+                  <label class="relative inline-block w-10 h-5 mr-1" title="${rule.enabled ? t("app.disable") : t("app.enable")}">
+                    <input
+                      type="checkbox"
+                      class="opacity-0 w-0 h-0"
+                      ?checked=${rule.enabled}
+                      ?disabled=${isProcessing}
+                      @change=${(e: Event) => this.handleToggle(rule.id, (e.target as HTMLInputElement).checked)}
+                    />
+                    <span class="slider absolute cursor-pointer inset-0 bg-border transition-all duration-400 rounded-[20px] checked:bg-success ${isProcessing ? 'cursor-not-allowed opacity-50' : ''}"></span>
+                  </label>
 
-                <!-- Actions Dropdown Trigger -->
-                <button
-                  class="flex bg-transparent border-none p-2 cursor-pointer rounded-md text-primary hover:bg-hover"
-                  @click=${(e: MouseEvent) => this.showRuleActions(e, rule)}
-                  ?disabled=${!rule.filePath}
-                  title="${i18next.t("app.moreOptions", { defaultValue: "More Menu" })}"
-                >
-                  ${MORE_VERT_ICON}
-                </button>
+                  <!-- Actions Dropdown Trigger -->
+                  <button
+                    class="flex bg-transparent border-none p-2 cursor-pointer rounded-md text-primary hover:bg-hover ${isProcessing ? 'pointer-events-none opacity-50' : ''}"
+                    @click=${(e: MouseEvent) => this.showRuleActions(e, rule)}
+                    ?disabled=${!rule.filePath || isProcessing}
+                    title="${i18next.t("app.moreOptions", { defaultValue: "More Menu" })}"
+                  >
+                    ${MORE_VERT_ICON}
+                  </button>
+                </div>
               </div>
-            </div>
-          `
+            `;
+          }
         )}
       </div>
     `;
