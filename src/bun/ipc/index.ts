@@ -113,7 +113,7 @@ export class IpcHandler {
             });
             
             const filteredPlugins = pluginInfos.filter((p): p is PluginInfo => p !== null);
-            console.log("[IPC] GetPlugins:", filteredPlugins);
+            //console.log("[IPC] GetPlugins:", filteredPlugins);
             return filteredPlugins;
           },
 

@@ -1,6 +1,6 @@
 import type { IPlugin, PluginContext } from "bun_plugins";
 import { PLUGIN_NAMES, ACTIONS, PLATFORMS } from "../src/bun/constants";
-import { getRegistryPlugin, parseData } from "./shared";
+import { getRegistryPlugin, parseData } from "./utils/shared";
 import { mkdir,readdir } from "node:fs/promises";
 async function ensureDir(path: string) {
   try {

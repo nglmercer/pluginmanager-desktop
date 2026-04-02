@@ -56,7 +56,26 @@ const rpc = Electroview.defineRPC<PluginManagerRPC>({
     },
   },
 });
+export interface ActionField {
+  readonly key: string;
+  readonly label: string;
+  readonly type: 'string' | 'number' | 'boolean' | 'select' | 'textarea';
+  readonly placeholder?: string;
+  readonly description?: string;
+  readonly labelKey?: string;
+  readonly descriptionKey?: string;
+  readonly options?: readonly { 
+    readonly value: string; 
+    readonly label: string; 
+    readonly labelKey?: string 
+  }[];
+  readonly default?: any;
+}
 
+export interface ActionConfig {
+  readonly type: string;
+  readonly fields: readonly ActionField[];
+}
 export const electroview = new Electroview({ rpc });
 export const EXPORT_CLICKED = 'TRIGGER_EDITOR_EXPORT_CLICKED';
 // Relay messages from Editor (postMessage) to Bun (RPC)
@@ -72,6 +91,10 @@ declare global {
       addAutocompleteData?: (alias: string, data: any, mode?: 'path' | 'value') => void;
       removeAutocompleteData?: (alias: string) => void;
       testEvent?: (eventName: string, data?: Record<string, any>, vars?: Record<string, any>, state?: Record<string, any>) => Promise<any>;
+      registerActionConfig?: (config: ActionConfig) => void;
+      getActionConfigs?: () => ActionConfig[];
+      //[key: string | string[], options?: (Omit<TOptions, "context"> & { context?: string | undefined; }) | undefined] | [key: string | string[], options: TOptionsBase & $Dictionary & { ...; }]
+      t?: (key: string, options?: Record<string, any> | any) => string;
     };
   }
 }
@@ -88,11 +111,25 @@ window.addEventListener('message', (event) => {
     if (data.type === PLUGIN_NAMES.SAVE_EVENTS){
       window.triggerEditor.addAutocompleteData?.(PLUGIN_NAMES.SAVE_EVENTS, data.data, 'path' as 'path' | 'value');      
     }
+    const TTS_config = {
+      type: 'tts',
+      fields: [
+          { 
+            key: 'message', 
+            label: 'Text to Speak', 
+            labelKey: window.triggerEditor.t?.('tts.message', 'Text to Speak'), 
+            type: 'string', 
+            placeholder: window.triggerEditor.t?.('tts.placeholder', 'Enter text to speak...') 
+          }
+        ]
+    } as const;
+    window.triggerEditor.registerActionConfig?.(TTS_config);
   }
   if (data.type === EXPORT_CLICKED) {
     console.log('[RPC] Relaying TRIGGER_EDITOR_EXPORT to Bun');
     electroview.rpc!.send.editorExported(data.payload);
   }
+
 });
 
 /**

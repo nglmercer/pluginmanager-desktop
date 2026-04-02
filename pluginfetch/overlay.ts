@@ -4,23 +4,36 @@ import { getRegistryPlugin } from "./utils/shared";
 import { ApiExecutor } from "./utils/apifetch";
 
 //        context?.emit(PLATFORMS.SYSTEM, { eventName: 'TTS', data: {message: "text"} });
-export class saveDataPlugin implements IPlugin {
-  name = PLUGIN_NAMES.TTS_SERVICE;
-  version = "1.0.0";
-  description = "Text-to-speech service use https://github.com/nglmercer/SonicBoom";
-  defaultConfig?: Record<string, any> | undefined = {
-      "url": "http://localhost:8455/api/tts/play",
-      "method": "POST",
-      "query": {
-        "voice": "F1",
-        "lang": "en",
-        "play_now": "true"
-      },
-      "headers": {
-        "Content-Type": "text/plain"
-      },
-      "body": "${message}"
+// {"duration":5000,"volume":1,"muted":false,"video":"/uploads/video/951ef249-d8d9-47ad-8170-22f3875f4065.mp4"}
+const OVERLAY_CONFIG = {
+  default: {
+  "url": "http://localhost:3001/api/tts/play",
+  "method": "POST",
+  "query": {
+    "voice": "F1",
+    "lang": "en",
+    "play_now": "true"
+  },
+  "headers": {
+    "Content-Type": "text/plain"
+  },
+  //{"duration":5000,"volume":1,"muted":false,"video":"/uploads/video/951ef249-d8d9-47ad-8170-22f3875f4065.mp4"}
+  // mediatype: video | audio | image
+  "body": {
+    "duration": 5000,
+    "volume": 1,
+    "muted": false,
+    //...mediatype currect video, audio or image
+    "video": "/uploads/video/example.mp4"
   }
+  },
+  name: "overlay-service"
+}
+export class overlayPlugin implements IPlugin {
+  name = OVERLAY_CONFIG.name;
+  version = "1.0.0";
+  description = "Overlay service use https://github.com/nglmercer/media-upload-api";
+  defaultConfig?: Record<string, any> | undefined = OVERLAY_CONFIG;
 
   async onLoad(context: PluginContext) {
     const {log} = context;

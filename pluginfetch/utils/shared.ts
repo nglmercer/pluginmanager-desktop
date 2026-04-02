@@ -1,6 +1,6 @@
 import type { IPlugin,PluginContext } from "bun_plugins";
 import type { ActionRegistry } from "trigger_system/node";
-import { PLUGIN_NAMES } from "../src/bun/constants";
+import { PLUGIN_NAMES } from "../../src/bun/constants";
 /* import { type as arkType, type Type } from "arktype";
 import type { Action, TriggerContext,ActionHandler } from "trigger_system/node";
 import { ExpressionEngine } from "trigger_system/node"; */
