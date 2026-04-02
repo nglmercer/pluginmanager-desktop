@@ -5,6 +5,7 @@ import { pluginAPI } from "../manager/plugin-api";
 import { rulesAPI } from "../manager/rules-api";
 import { PLUGIN_NAMES } from "../constants";
 import { RulePersistence } from "trigger_system/node";
+import { PluginInstaller } from "../manager/plugin-installer";
 import type { PluginManagerRPC, PluginInfo, PluginStatus, RuleInfo, WindowStatus, ActionResult } from "../../shared/types";
 import type { TriggerRule } from "trigger_system/node";
 import { IPC_EVENTS, EDITOR_MESSAGES } from "../constants";
@@ -481,6 +482,30 @@ export class IpcHandler {
               console.warn(`[IPC] Registry.remove(${ruleId}) returned false`);
             }
             return { success: removed, error: removed ? undefined : "Rule not found in registry" };
+          },
+
+          // ===== Plugin Config API =====
+          getPluginConfig: async (params: RPCRequests['getPluginConfig']['params']): Promise<any> => {
+            if (!this.manager) return {};
+            try {
+              const config = await PluginInstaller.getConfig(params.pluginName, "");
+              return config || {};
+            } catch (error) {
+              console.error(`[IPC] Failed to get plugin config: ${params.pluginName}`, error);
+              return {};
+            }
+          },
+
+          setPluginConfig: async (params: RPCRequests['setPluginConfig']['params']): Promise<ActionResult> => {
+            if (!this.manager) return { success: false, error: "No manager" };
+            try {
+              await PluginInstaller.setConfig(params.pluginName, "", params.config);
+              console.log(`[IPC] Plugin config saved for ${params.pluginName}`);
+              return { success: true };
+            } catch (error) {
+              console.error(`[IPC] Failed to set plugin config: ${params.pluginName}`, error);
+              return { success: false, error: String(error) };
+            }
           },
 
           // Open a specific plugin folder

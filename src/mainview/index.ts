@@ -14,6 +14,7 @@ import "./components/plugin-manager.js";
 import "./components/rule-manager.js";
 import "./components/rule-list.js";
 import "./components/plugin-list.js";
+import "./components/plugin-config-modal.js";
 
 // Re-export the AppContainer and types
 export { AppContainer } from "./components/app-container.js";

@@ -1,11 +1,13 @@
 import { LitElement, html } from "lit";
-import { customElement, state, property } from "lit/decorators.js";
+import { customElement, state, property, query } from "lit/decorators.js";
 import { i18next } from "../defaults/i18n.js";
 import { invokeRpc } from "../../shared/rpc.js";
 import type { PluginInfo, ActionResult } from "../types.js";
 
 // Register child components
 import "./plugin-list.js";
+import "./plugin-config-modal.js";
+import type { PluginConfigModal } from "./plugin-config-modal.js";
 
 /**
  * Plugin Manager Container
@@ -26,6 +28,8 @@ export class PluginManager extends LitElement {
   @property({ type: String }) sortBy: string = "name";
   @property({ type: String }) sortOrder: 'asc' | 'desc' = "asc";
 
+  @query("plugin-config-modal") private _configModal!: PluginConfigModal;
+
   private _pollInterval?: ReturnType<typeof setInterval>;
 
   updated(changedProperties: Map<string, any>) {
@@ -38,7 +42,7 @@ export class PluginManager extends LitElement {
     super.connectedCallback();
     this.loadPlugins();
     // Poll for changes
-    this._pollInterval = setInterval(() => this.loadPlugins(), 2000);
+    this._pollInterval = setInterval(() => this.loadPlugins(), 5000); // Increased interval to be less aggressive during editing
   }
 
   disconnectedCallback() {
@@ -123,6 +127,10 @@ export class PluginManager extends LitElement {
     this.removePlugin(e.detail.pluginName);
   }
 
+  private handlePluginConfig(e: CustomEvent<{ pluginName: string }>): void {
+    this._configModal.open(e.detail.pluginName);
+  }
+
   render() {
     return html`
       <div class="p-5 pt-0">
@@ -135,7 +143,10 @@ export class PluginManager extends LitElement {
           .plugins=${this.plugins}
           .loading=${this.loading}
           @plugin-remove=${this.handlePluginRemove}
+          @plugin-config=${this.handlePluginConfig}
         ></plugin-list>
+
+        <plugin-config-modal></plugin-config-modal>
       </div>
     `;
   }

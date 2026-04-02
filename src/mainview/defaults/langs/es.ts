@@ -36,6 +36,10 @@ export const es = {
         "openPluginsDir": "Abrir Directorio de Plugins",
         "openRulesDir": "Abrir Directorio de Reglas",
         "editRule": "Editar Regla",
+        "editConfig": "Editar Configuración",
+        "save": "Guardar",
+        "cancel": "Cancelar",
+        "noConfigFields": "No se han encontrado campos de configuración. Cambia al modo JSON para añadir algunos.",
         "sortBy": "Ordenar por"
       },
       "tab":{

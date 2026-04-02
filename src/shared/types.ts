@@ -38,6 +38,8 @@ export type PluginManagerRPC = {
       toggleRule: { params: { ruleId: string; enabled: boolean }; response: AsyncResponseWrapper<ActionResult> };
       deleteRuleById: { params: { ruleId: string }; response: AsyncResponseWrapper<ActionResult> };
       updateEngineRules: { params: { rules: TriggerRule[] }; response: AsyncResponseWrapper<boolean> };
+      getPluginConfig: { params: { pluginName: string }; response: AsyncResponseWrapper<any> };
+      setPluginConfig: { params: { pluginName: string; config: any }; response: AsyncResponseWrapper<ActionResult> };
       
       // ===== Editor Integration API =====
       editorImport: { params: { format: 'yaml' | 'json'; payload: string | object; filePath?: string }; response: void };

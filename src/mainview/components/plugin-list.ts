@@ -6,7 +6,7 @@ import { i18next } from "../defaults/i18n.js";
 import type { PluginInfo } from "../types.js";
 
 // Import theme system
-import { FOLDER_ICON, TRASH_ICON, NO_PLUGINS_ICON, MORE_VERT_ICON } from "../styles/index.js";
+import { FOLDER_ICON, TRASH_ICON, NO_PLUGINS_ICON, MORE_VERT_ICON, EDIT_ICON } from "../styles/index.js";
 
 /**
  * Plugin List Component
@@ -80,6 +80,12 @@ export class PluginList extends LitElement {
     
     ActionMenu.show(e, [
       {
+        id: "configure",
+        label: i18next.t("app.editConfig", { defaultValue: "Configure" }),
+        icon: EDIT_ICON,
+        action: () => this.handleConfigure(plugin.id || plugin.name)
+      },
+      {
         id: "open",
         label: i18next.t("app.openPluginFolder", { defaultValue: "Open Folder" }),
         icon: FOLDER_ICON,
@@ -93,6 +99,16 @@ export class PluginList extends LitElement {
         action: () => this.handleRemove(plugin.id || plugin.name)
       }
     ]);
+  }
+
+  private handleConfigure(pluginName: string): void {
+    this.dispatchEvent(
+      new CustomEvent("plugin-config", {
+        detail: { pluginName },
+        bubbles: true,
+        composed: true,
+      })
+    );
   }
 
   render() {

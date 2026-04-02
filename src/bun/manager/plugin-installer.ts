@@ -38,19 +38,34 @@ export class PluginInstallerService {
   public static isPluginInstalled(pluginName: string, manager?: BasePluginManager): boolean {
     return manager?.getPluginPath(pluginName) !== undefined && manager?.getPlugin(pluginName) !== undefined;
   }
-  public static getConfig(pluginName: string, key: string):unknown | boolean{
+  public static async getConfig(pluginName: string, key: string): Promise<unknown | undefined> {
     const storage = JsonPluginStorage.getInstanceByName(pluginName);
     if(!storage){
-      return false;
+      return undefined;
+    }
+    // ensureLoaded is private, but calling any public async method like get() will trigger it.
+    await storage.get("__init__");
+    const values = (storage as any).data;
+    console.log('[getConfig] values', values);
+    if (key === "") {
+        return values || {};
     }
     return storage.get(key);
   }
-  public static setConfig(pluginName: string, key: string, value: unknown):unknown | boolean{
+
+  public static async setConfig(pluginName: string, key: string, value: unknown): Promise<unknown | undefined> {
     const storage = JsonPluginStorage.getInstanceByName(pluginName);
     if(!storage){
-      return false;
+      return undefined;
     }
-    storage.set(key, value);
+    await storage.get("__init__");
+    if (key === "" && typeof value === 'object' && value !== null) {
+        (storage as any).data = value;
+        // save() is private, we access it via casting
+        await (storage as any).save?.();
+    } else {
+        await storage.set(key, value);
+    }
     return storage.get(key);
   }
 }
@@ -69,6 +84,8 @@ export const PluginInstaller = {
   isPluginInstalled,
   getPluginsDir,
   getRulesDir,
+  getConfig: PluginInstallerService.getConfig.bind(PluginInstallerService),
+  setConfig: PluginInstallerService.setConfig.bind(PluginInstallerService),
 };
 
 export default PluginInstaller;
