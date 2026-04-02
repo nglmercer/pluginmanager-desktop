@@ -1,6 +1,7 @@
 import { Electroview } from "electrobun/view";
 import type { PluginManagerRPC } from "./types";
-import { PLUGIN_NAMES } from "../bun/constants";
+import { PLUGIN_NAMES,OVERLAY_CONFIG } from "../bun/constants";
+import { ApiExecutor,type RequestConfig,type filesResponse } from "../../pluginfetch/utils/apifetch";
 // Type for async callback resolving
 type Resolver = (data: unknown) => void;
 type Rejecter = (error: Error) => void;
@@ -99,10 +100,10 @@ declare global {
   }
 }
 window.logs = true
-
-window.addEventListener('message', (event) => {
+window.addEventListener('message',async (event) => {
   const { data } = event;
   if (!data || typeof data !== 'object') return;
+
   if (window.logs) console.log('[RPC] Message from Editor:', data);
   if (window.triggerEditor) {
     if (data.type === PLUGIN_NAMES.ACTION_REGISTRY){
@@ -124,6 +125,28 @@ window.addEventListener('message', (event) => {
         ]
     } as const;
     window.triggerEditor.registerActionConfig?.(TTS_config);
+    // TODO: Add media upload config
+    if (data.type === OVERLAY_CONFIG.name){
+      const options: RequestConfig = {
+        url: data.storage.url,
+        method: 'GET'
+      }
+      const mediaOptions = await getMedia(options.url ? options : undefined);
+      const mediaConfig = {
+      type: OVERLAY_CONFIG.name,
+      fields: [
+        {
+          key: 'media',
+          label: 'Media',
+          labelKey: window.triggerEditor.t?.('media.label', 'Media'),
+          type: 'select',
+          options: mediaOptions,
+          placeholder: window.triggerEditor.t?.('media.placeholder', 'Select media...')
+        }
+      ]
+    } as const;
+    window.triggerEditor.registerActionConfig?.(mediaConfig);
+    }
   }
   if (data.type === EXPORT_CLICKED) {
     console.log('[RPC] Relaying TRIGGER_EDITOR_EXPORT to Bun');
@@ -131,7 +154,23 @@ window.addEventListener('message', (event) => {
   }
 
 });
-
+// http://localhost:3001/api/files?pageSize=100
+async function getMedia(config: RequestConfig ={
+  url: 'http://localhost:3001/api/files',
+  method: 'GET',
+  query: {
+    pageSize: '100'
+  }
+}): Promise<{ value: string; label: string }[]> {
+  try {
+    const executor = new ApiExecutor();
+    const result = await executor.execute(config) as filesResponse;
+    return result.files.map((file) => ({ value: file.id, label: file.name }));
+  } catch (error) {
+    console.error('Error fetching media:', error);
+    return [];
+  }
+}
 /**
  * Invokes an RPC method on the Bun side with support for async responses
  */

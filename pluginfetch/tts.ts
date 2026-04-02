@@ -1,4 +1,3 @@
-import type { IPlugin, PluginContext } from "bun_plugins";
 import { PLUGIN_NAMES, ACTIONS } from "../src/bun/constants";
 import { BaseApiPlugin, type BaseApiConfig } from "./utils/baseApiPlugin";
 
@@ -6,7 +5,7 @@ export interface TTSParams {
   message: string;
 }
 
-//        context?.emit(PLATFORMS.SYSTEM, { eventName: 'TTS', data: {message: "text"} });
+// context?.emit(PLATFORMS.SYSTEM, { eventName: 'TTS', data: {message: "text"} });
 export class saveDataPlugin extends BaseApiPlugin<TTSParams> {
   name = PLUGIN_NAMES.TTS_SERVICE;
   version = "1.0.0";

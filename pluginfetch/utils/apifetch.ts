@@ -5,7 +5,30 @@ export type RequestConfig = {
   headers?: Record<string, string>;
   body?: string | object;
 };
-
+export type File = {
+    id: string;
+    name: string;
+    originalName: string;
+    category: "image" | "audio" | "video" | "document" | "archive" | "application" | "font" | "model" | "data" | "other" | "unknown" | "mismatch" | "corrupted" | "disguised";
+    mimeType: string | null;
+    extension: string;
+    size: number;
+    sizeFormatted: string;
+    url: string;
+    isPublic: boolean;
+    tags?: string[] | undefined;
+    [key: string]: unknown;
+}
+export type pagination = {
+    page: number;
+    pageSize: number;
+    totalPages: number;
+    total: number;
+}
+export type filesResponse = {
+    files: File[];
+    pagination: pagination;
+}
 export class ApiExecutor {
   private defaults: Partial<RequestConfig>;
 
