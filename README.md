@@ -214,8 +214,7 @@ pluginmanager-desktop/
 │   │       └── index.css
 │   ├── shared/                # Shared code between processes
 │   │   ├── rpc.ts             # RPC type definitions
-│   │   ├── types.ts           # Shared type definitions
-│   │   └── pluginsample.ts    # Sample plugin implementation
+│   │   └── types.ts           # Shared type definitions
 │   ├── assets/                # Static assets
 │   │   └── tray-icon.svg      # System tray icon
 │   └── types/                 # Global type definitions
@@ -426,8 +425,9 @@ Plugins are modular extensions that add functionality to the application. Each p
 1. Define the plugin structure:
 
 ```typescript
-// src/shared/pluginsample.ts
-export interface Plugin {
+import type { IPlugin } from "bun_plugins";
+
+export interface IPlugin {
   id: string;
   name: string;
   version: string;

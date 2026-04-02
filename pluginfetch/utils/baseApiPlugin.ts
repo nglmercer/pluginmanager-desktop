@@ -8,6 +8,7 @@ export interface BaseApiConfig {
   query?: Record<string, unknown>;
   headers?: Record<string, unknown>;
   body?: unknown;
+  [key: string]: unknown;
 }
 
 export abstract class BaseApiPlugin<TParams = unknown> implements IPlugin {
@@ -56,31 +57,21 @@ export abstract class BaseApiPlugin<TParams = unknown> implements IPlugin {
   async loadConfig(context: PluginContext): Promise<BaseApiConfig> {
     const { storage } = context;
     const config = this.defaultConfig || {};
+    const loadedConfig: Record<string, unknown> = {};
 
-    const defaultMethod = await storage.get<string>("method", config.method);
-    const defaultUrl = await storage.get<string>("url", config.url);
-    const defaultQuery = await storage.get<Record<string, unknown>>("query", config.query);
-    const defaultHeaders = await storage.get<Record<string, unknown>>("headers", config.headers);
+    for (const [key, defaultValue] of Object.entries(config)) {
+      const storedValue = await storage.get(key, defaultValue);
+      
+      // Check if it's missing entirely to initialize it
+      const rawStored = await storage.get(key);
+      if (rawStored === undefined || rawStored === null) {
+        await storage.set(key, defaultValue);
+      }
 
-    if (defaultMethod === config.method) {
-      await storage.set("method", defaultMethod);
-    }
-    if (defaultUrl === config.url) {
-      await storage.set("url", defaultUrl);
-    }
-    if (defaultQuery === config.query) {
-      await storage.set("query", defaultQuery);
-    }
-    if (defaultHeaders === config.headers) {
-      await storage.set("headers", defaultHeaders);
+      loadedConfig[key] = storedValue;
     }
 
-    return {
-      method: defaultMethod,
-      url: defaultUrl,
-      query: defaultQuery,
-      headers: defaultHeaders
-    };
+    return loadedConfig as BaseApiConfig;
   }
 
   onUnload() {}

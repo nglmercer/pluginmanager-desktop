@@ -186,7 +186,6 @@ export const ACTIONS = {
     MC_COMMAND: "minecraft:command",
     // New evaluation actions
     EVALUATE: "evaluate",
-    EVALUATE_AND_SPEAK: "evaluate_and_speak",
     DATETIME: "datetime",
     TTS_DIRECT: "tts_direct",
     AI_RESPOND: "ai_respond",
@@ -285,7 +284,8 @@ export const WS_CONSTANTS = {
 export const OVERLAY_CONFIG = {
   default: {
     "url": "http://localhost:3001/api/alerts/trigger",
-    "method": "POST",
+    "getUrl": "http://localhost:3001/api/files",
+    "method": "POST" as const,
     "headers": {
       "Content-Type": "text/plain",
       "Authorization": "Bearer your-token-here"
@@ -297,6 +297,13 @@ export const OVERLAY_CONFIG = {
       //"video": "/uploads/video/example.mp4"
       //"image": "/uploads/image/example.png"
       //"audio": "/uploads/audio/example.mp3"
+    }
+  },
+  fetchFiles: {
+    getUrl: "http://localhost:3001/api/files",
+    method: "GET" as const,
+    query: {
+      pageSize: "100"
     }
   },
   name: "overlay-service"

@@ -113,7 +113,7 @@ window.addEventListener('message',async (event) => {
       window.triggerEditor.addAutocompleteData?.(PLUGIN_NAMES.SAVE_EVENTS, data.data, 'path' as 'path' | 'value');      
     }
     const TTS_config = {
-      type: 'tts',
+      type: 'TTS',
       fields: [
           { 
             key: 'message', 
@@ -127,22 +127,22 @@ window.addEventListener('message',async (event) => {
     window.triggerEditor.registerActionConfig?.(TTS_config);
     // TODO: Add media upload config
     if (data.type === OVERLAY_CONFIG.name){
-      const options: RequestConfig = {
-        url: data.storage.url,
-        method: 'GET'
-      }
-      const mediaOptions = await getMedia(options.url ? options : undefined);
+      // data = {url}
+      const mediaOptions = await getMedia({...OVERLAY_CONFIG.default, ...data}, data.getUrl);
       const mediaConfig = {
       type: OVERLAY_CONFIG.name,
       fields: [
         {
-          key: 'media',
+          key: 'video',
           label: 'Media',
           labelKey: window.triggerEditor.t?.('media.label', 'Media'),
           type: 'select',
           options: mediaOptions,
           placeholder: window.triggerEditor.t?.('media.placeholder', 'Select media...')
-        }
+        },
+        { key: 'duration', label: 'Duration (ms)', type: 'number', default: 5000 },
+        { key: 'volume', label: 'Volume (0-1)', type: 'number', default: 1 },
+        { key: 'muted', label: 'Muted', type: 'boolean', default: false }
       ]
     } as const;
     window.triggerEditor.registerActionConfig?.(mediaConfig);
@@ -156,12 +156,11 @@ window.addEventListener('message',async (event) => {
 });
 // http://localhost:3001/api/files?pageSize=100
 async function getMedia(config: RequestConfig ={
-  url: 'http://localhost:3001/api/files',
-  method: 'GET',
-  query: {
-    pageSize: '100'
-  }
-}): Promise<{ value: string; label: string }[]> {
+  url: OVERLAY_CONFIG.default.getUrl,
+  method: OVERLAY_CONFIG.fetchFiles.method,
+  query: OVERLAY_CONFIG.fetchFiles.query
+}, filesUrl?: string): Promise<{ value: string; label: string }[]> {
+  config.url = filesUrl || config.url;
   try {
     const executor = new ApiExecutor();
     const result = await executor.execute(config) as filesResponse;
