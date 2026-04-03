@@ -618,8 +618,8 @@ export class IpcHandler {
                   payload: content
                 });
               };
-              setTimeout(sendData, 1000);
-              setTimeout(() => sendData(), 2000);
+              setTimeout(sendData, 1500);
+              //setTimeout(() => sendData(), 2000);
               return;
             } catch (error) {
               console.error(`[IPC] Failed to load rule for editor: ${filePath}`, error);

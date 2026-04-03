@@ -173,7 +173,7 @@ async function getMedia(config: RequestConfig ={
   try {
     const executor = new ApiExecutor();
     const result = await executor.execute(config) as filesResponse;
-    return result.files.map((file) => ({ value: file.id, label: file.name }));
+    return result.files.map((file) => ({ value: file.id, label: file.originalName, type: file.mimeType, mediaUrl: file.url }));
   } catch (error) {
     console.error('Error fetching media:', error);
     return [];
