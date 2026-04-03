@@ -74,8 +74,12 @@ main().then((result) => {
 			}
 			if (savePlugin) {
 				const SAVE_EVENTS = savePlugin as savePT;
-				await SAVE_EVENTS?.getData?.();
-				ipcHandler.postMessageToWebview({type: PLUGIN_NAMES.SAVE_EVENTS, data: SAVE_EVENTS?.eventCache});
+				const saveData = await SAVE_EVENTS?.getData?.();
+				const data = {...SAVE_EVENTS?.eventCache, ...saveData};
+				Object.keys(data).forEach((key) => {
+					console.log(key,Object.keys(data[key]).length)
+				});
+				ipcHandler.postMessageToWebview({type:PLUGIN_NAMES.SAVE_EVENTS, data: data});
 			}
 			const overlayPlugin = manager.getPlugin(OVERLAY_CONFIG.name);
 			if (overlayPlugin) {

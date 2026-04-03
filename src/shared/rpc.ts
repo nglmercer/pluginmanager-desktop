@@ -107,10 +107,12 @@ window.addEventListener('message',async (event) => {
   if (window.logs) console.log('[RPC] Message from Editor:', data);
   if (window.triggerEditor) {
     if (data.type === PLUGIN_NAMES.ACTION_REGISTRY){
-      window.triggerEditor.addAutocompleteData?.(PLUGIN_NAMES.ACTION_REGISTRY, data.data, 'value' as 'path' | 'value');
+      window.triggerEditor?.addAutocompleteData?.(PLUGIN_NAMES.ACTION_REGISTRY, data.data, 'value' as 'path' | 'value');
     }
     if (data.type === PLUGIN_NAMES.SAVE_EVENTS){
-      window.triggerEditor.addAutocompleteData?.(PLUGIN_NAMES.SAVE_EVENTS, data.data, 'path' as 'path' | 'value');      
+      Object.keys(data.data).forEach((key) => {
+        window.triggerEditor?.addAutocompleteData?.(key, data.data[key], 'path' as 'path' | 'value');
+      });
     }
     const TTS_config = {
       type: 'TTS',
