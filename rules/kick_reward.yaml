@@ -1,44 +1,33 @@
-# @import data from './RewardRedeemed.json'
-# Chat comment rule - TTS processing with quality filtering
-# Quality filter configuration is in plugins/ai/constants.ts
+# @import RewardRedeemed from "../data/RewardRedeemed.json"
 - id: RewardRedeemed-id
+  name: Imported Rule
   on: RewardRedeemed
   if:
-    - field: ${data.reward_title}
-      operator: EQ
-      value: "xd_f"
-      
+    field: ${RewardRedeemed.reward_title}
+    operator: EQ
+    value: xd_f
   do:
     mode: EITHER
     actions:
-      - type: overlay-service
+      - type: OVERLAY-SERVICE
         params:
-          method: POST
-            #"{eventName: 'kick_reward_redeemed', data: {username: '${data.sender.username}',message: '${data.content}'},target: {id: '5de9c752-98b7-4bea-aea4-44b8c4b893ba'}}"
-      - type: overlay-service
+          video: 7034acd9-272f-4f4b-b51c-856408c07bc9
+          volume: 0.5
+        probability: 0.6
+      - type: OVERLAY-SERVICE
         params:
-          method: POST
-
+          video: 850e3888-0044-4015-8053-ff0bff75f16b
+          volume: 0.5
+        probability: 0.6
 - id: RewardRedeemed-id-2
+  name: Imported Rule
   on: RewardRedeemed
   if:
-    - field: ${data.reward_title}
-      operator: EQ
-      value: "ooooh_cat"
-
+    field: ${RewardRedeemed.reward_title}
+    operator: EQ
+    value: ooooh_cat
   do:
-    mode: SEQUENCE
-    actions:
-      - type: OVERLAY_WEBHOOK
-        params:
-          method: POST
-          body:
-            type: "alert"
-            eventName: "kick_reward_redeemed"
-            data:
-              {
-                username: "${data.username}",
-                reward_title: "${data.reward_title}",
-                message: "${data.user_input}",
-              }
-            target: { id: "9dd05223-4379-45b1-80ee-6c5754c1c224" }
+    type: OVERLAY-SERVICE
+    params:
+      muted: false
+      video: 9feb0908-5b50-4b15-8fdd-dd6ab86dbce8
