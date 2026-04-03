@@ -35,16 +35,27 @@ export default {
 			"src/mainview/dist.css": "views/mainview/dist.css",
 			"src/mainview/trigger-editor/": "views/editor/",
 		},
-		mac: {
-			bundleCEF: false,
-		},
-		linux: {
-			bundleCEF: false,
-			icon: "assets/icon_256x256.png",
-		},
-		win: {
-			bundleCEF: false,
-			icon: "assets/icon.ico",
-		},
+		mac: {   
+			bundleCEF: true,  
+			chromiumFlags: {  
+				"disable-web-security": true,
+				"allow-insecure-localhost": true,  
+				"disable-features": "VizDisplayCompositor"  
+			}  
+		},  
+		win: {   
+			bundleCEF: true,  
+			chromiumFlags: {  
+				"disable-web-security": true,  
+				"allow-insecure-localhost": true  
+			}  
+		},  
+		linux: {   
+			bundleCEF: true,  
+			chromiumFlags: {  
+				"disable-web-security": true,  
+				"allow-insecure-localhost": true,  
+			}  
+		}  
 	},
 } satisfies ElectrobunConfig;

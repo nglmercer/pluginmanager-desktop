@@ -127,10 +127,14 @@ window.addEventListener('message',async (event) => {
     window.triggerEditor.registerActionConfig?.(TTS_config);
     // TODO: Add media upload config
     if (data.type === OVERLAY_CONFIG.name){
-      const defaultOptions = {...OVERLAY_CONFIG.default, ...data};
-      const mediaOptions = await getMedia(defaultOptions, data.getUrl);
-      // data = {url}
-      console.log(mediaOptions);
+      const configData = data.data || data;
+      const defaultOptions = {...OVERLAY_CONFIG.default, ...configData};
+      
+      // Override url with 'getUrl' since this specific request fetches media options
+      const fetchUrl = configData.getUrl || OVERLAY_CONFIG.default.getUrl;
+      defaultOptions.url = fetchUrl;
+      
+      const mediaOptions = await getMedia(defaultOptions, fetchUrl);
       const mediaConfig = {
       type: OVERLAY_CONFIG.name.toUpperCase(),
       fields: [
@@ -165,6 +169,7 @@ async function getMedia(config: RequestConfig ={
   config.url = filesUrl || config.url;
   config.method = 'GET';
   config.body = undefined;
+  console.log('getMedia config', config)
   try {
     const executor = new ApiExecutor();
     const result = await executor.execute(config) as filesResponse;

@@ -43,7 +43,8 @@ export class ApiExecutor {
    * Replaces placeholders in the body or URL
    * e.g., replaceVariables("Hello {name}", { name: "World" }) -> "Hello World"
    */
-  private replaceVariables(template: string, vars: Record<string, string>): string {
+  private replaceVariables(template: string | undefined, vars: Record<string, string>): string {
+    if (!template || typeof template !== 'string') return template as any;
     return template.replace(/{(\w+)}/g, (_, key) => vars[key] || `{${key}}`);
   }
 
