@@ -49,7 +49,7 @@ export class ApiExecutor {
 
   async execute(config: RequestConfig, vars: Record<string, string> = {}) {
     const finalUrl = this.replaceVariables(config.url, vars);
-    const finalBody = typeof config.body === 'string' 
+    let finalBody = typeof config.body === 'string' 
       ? this.replaceVariables(config.body, vars) 
       : config.body;
 
@@ -57,9 +57,14 @@ export class ApiExecutor {
     if (config.query) {
       Object.entries(config.query).forEach(([k, v]) => url.searchParams.append(k, v));
     }
+    const method = (config.method || this.defaults.method || 'GET').toUpperCase();
 
+    if (method === 'GET' || method === 'HEAD') {
+      finalBody = undefined;
+    }
+    
     const response = await fetch(url.toString(), {
-      method: config.method || this.defaults.method,
+      method: method,
       headers: { ...this.defaults.headers, ...config.headers },
       body: typeof finalBody === 'object' ? JSON.stringify(finalBody) : finalBody,
     });

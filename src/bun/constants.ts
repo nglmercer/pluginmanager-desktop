@@ -287,8 +287,9 @@ export const OVERLAY_CONFIG = {
     "getUrl": "http://localhost:3001/api/files",
     "method": "POST" as const,
     "headers": {
-      "Content-Type": "text/plain",
-      "Authorization": "Bearer your-token-here"
+      "Content-Type": "application/json",
+      // add token here
+      "Authorization": ""
     },
     "body": {
       "duration": 5000,
