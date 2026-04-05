@@ -1,0 +1,7 @@
+# allways event is data or eventName this case TTS or data .message
+- id: tts-message
+  on: TTS
+  do:
+    type: TTS
+    params:
+      message: "${TTS.message}"
