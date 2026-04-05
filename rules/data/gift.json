@@ -1,0 +1,80 @@
+{
+  "giftId": 13651,
+  "repeatCount": 1,
+  "repeatEnd": true,
+  "groupId": "1773209443011",
+  "userIdentity": {
+    "isGiftGiverOfAnchor": true,
+    "isMutualFollowingWithAnchor": true,
+    "isFollowerOfAnchor": true,
+    "isModeratorOfAnchor": true
+  },
+  "userId": "6963737832063484933",
+  "secUid": "MS4wLjABAAAAdwYL6r2bqNllYeuVyjBoEaZ25C4yk9wiQJNglezmCHKUjgGZHKoFGZC9x04B_U3g",
+  "uniqueId": "anyelouwu",
+  "nickname": "Anyelo Joestar🐈‍⬛☀️",
+  "profilePictureUrl": "https://p16-sign-sg.tiktokcdn.com/tos-alisg-avt-0068/e7667d197ccdb4ec7daf74c1414dfbab~tplv-tiktokx-cropcenter:100:100.webp?dr=14579&refresh_token=b249f9d2&x-expires=1773381600&x-signature=gey6I0LFxpDtiBxeFKRpLj%2BhjPM%3D&t=4d5b0474&ps=13740610&shp=a5d48078&shcp=fdd36af4&idc=my3",
+  "followRole": 0,
+  "userBadges": [
+    {
+      "type": "privilege",
+      "privilegeId": "7138381747292608292",
+      "level": 19,
+      "badgeSceneType": 8
+    },
+    {
+      "type": "privilege",
+      "privilegeId": "7196929090442529541",
+      "level": 16,
+      "badgeSceneType": 10
+    }
+  ],
+  "userSceneTypes": [
+    1,
+    6,
+    8,
+    10,
+    6,
+    1
+  ],
+  "userDetails": {
+    "createTime": "0",
+    "bioDescription": "",
+    "profilePictureUrls": [
+      "https://p16-sign-sg.tiktokcdn.com/tos-alisg-avt-0068/e7667d197ccdb4ec7daf74c1414dfbab~tplv-tiktokx-cropcenter:100:100.webp?dr=14579&refresh_token=b249f9d2&x-expires=1773381600&x-signature=gey6I0LFxpDtiBxeFKRpLj%2BhjPM%3D&t=4d5b0474&ps=13740610&shp=a5d48078&shcp=fdd36af4&idc=my3",
+      "https://p16-sign-sg.tiktokcdn.com/tos-alisg-avt-0068/e7667d197ccdb4ec7daf74c1414dfbab~tplv-tiktokx-cropcenter:100:100.jpeg?dr=14579&refresh_token=d1a6fdb9&x-expires=1773381600&x-signature=%2ByHaIOcYZvYcNy8IeKdNTrvf73E%3D&t=4d5b0474&ps=13740610&shp=a5d48078&shcp=fdd36af4&idc=my3",
+      "https://p16-common-sign.tiktokcdn-us.com/tos-alisg-avt-0068/e7667d197ccdb4ec7daf74c1414dfbab~tplv-tiktokx-cropcenter:100:100.webp?dr=18067&refresh_token=9c6f30cd&x-expires=1773381600&x-signature=Xkhxlx7g47xWGcVFgKHOhTxmB4I%3D&t=4d5b0474&ps=ae600521&shp=a5d48078&shcp=fdd36af4&idc=my3",
+      "https://p19-common-sign.tiktokcdn-us.com/tos-alisg-avt-0068/e7667d197ccdb4ec7daf74c1414dfbab~tplv-tiktokx-cropcenter:100:100.webp?dr=18067&refresh_token=eee024fa&x-expires=1773381600&x-signature=Vvxu1jC%2Fcw%2FVXz2bDO0zBFRU1vE%3D&t=4d5b0474&ps=ae600521&shp=a5d48078&shcp=fdd36af4&idc=my3",
+      "https://p16-common-sign.tiktokcdn-us.com/tos-alisg-avt-0068/e7667d197ccdb4ec7daf74c1414dfbab~tplv-tiktokx-cropcenter:100:100.jpeg?dr=18067&refresh_token=d4342985&x-expires=1773381600&x-signature=wg9CUnPR9ltTPJyrHyBFXSFgGa0%3D&t=4d5b0474&ps=ae600521&shp=a5d48078&shcp=fdd36af4&idc=my3"
+    ]
+  },
+  "followInfo": {
+    "followingCount": 98,
+    "followerCount": 4920,
+    "followStatus": 0,
+    "pushStatus": 0
+  },
+  "isModerator": false,
+  "isNewGifter": false,
+  "isSubscriber": false,
+  "topGifterRank": null,
+  "gifterLevel": 19,
+  "teamMemberLevel": 16,
+  "msgId": "7615876203681909522",
+  "createTime": "1773209446832",
+  "displayType": "webcast_aweme_gift_send_messageNew",
+  "label": "{0:user} sent {1:gift} × {2:string}",
+  "gift": {
+    "gift_id": 13651,
+    "repeat_count": 1,
+    "repeat_end": 1,
+    "gift_type": 1
+  },
+  "describe": "Sent Popular Vote",
+  "giftType": 1,
+  "diamondCount": 1,
+  "giftName": "Popular Vote",
+  "giftPictureUrl": "https://p19-webcast.tiktokcdn.com/img/alisg/webcast-sg/resource/b342e28d73dac6547e0b3e2ad57f6597.png~tplv-obj.png",
+  "timestamp": 1773209446832,
+  "receiverUserId": "6967462872889639941"
+}

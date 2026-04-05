@@ -1,0 +1,29 @@
+# @import gift from '../data/gift.json'
+# @import Allgifts from '../data/Allgifts.json'
+# Comprehensive test using imported data for autocompletion
+
+- id: general-gift
+  on: gift
+  do:
+    mode: SEQUENCE
+    actions:
+      - type: log
+        params:
+          message: ${gift.nickname} envio ${gift.giftName} ${gift.gift.gift_id} ${gift.diamondCount}
+      - type: TTS
+        params:
+          message: ${gift.nickname} envio ${gift.giftName}
+
+- id: Rose-gift
+  on: gift
+  if:
+    field: ${gift.gift.gift_id}
+    operator: EQ
+    value: 5655
+  do:
+    mode: SEQUENCE
+    actions:
+      type: OVERLAY-SERVICE
+      params:
+        muted: false
+        video: 9feb0908-5b50-4b15-8fdd-dd6ab86dbce8

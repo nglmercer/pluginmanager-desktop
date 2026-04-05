@@ -1,0 +1,33 @@
+# @import RewardRedeemed from "../data/RewardRedeemed.json"
+- id: RewardRedeemed-id
+  name: Imported Rule
+  on: RewardRedeemed
+  if:
+    field: ${RewardRedeemed.reward_title}
+    operator: EQ
+    value: xd_f
+  do:
+    mode: EITHER
+    actions:
+      - type: OVERLAY-SERVICE
+        params:
+          video: 7034acd9-272f-4f4b-b51c-856408c07bc9
+          volume: 0.5
+        probability: 0.6
+      - type: OVERLAY-SERVICE
+        params:
+          video: 850e3888-0044-4015-8053-ff0bff75f16b
+          volume: 0.5
+        probability: 0.6
+- id: RewardRedeemed-id-2
+  name: Imported Rule
+  on: RewardRedeemed
+  if:
+    field: ${RewardRedeemed.reward_title}
+    operator: EQ
+    value: ooooh_cat
+  do:
+    type: OVERLAY-SERVICE
+    params:
+      muted: false
+      video: 9feb0908-5b50-4b15-8fdd-dd6ab86dbce8

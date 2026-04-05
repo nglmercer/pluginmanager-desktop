@@ -4,10 +4,12 @@ import { TrayClickedEvent } from "./index.d";
 import { main } from "./pluginmanager";
 import { ontrayevent, MenuBuilder } from "./constants/tray";
 import { ipcHandler } from "./ipc";
-import { PLATFORMS, PLUGIN_NAMES } from "./constants";
+import { PLATFORMS, PLUGIN_NAMES,OVERLAY_CONFIG } from "./constants";
 import { triggerEmitter } from 'trigger_system/node';
 import type { IPlugin } from 'bun_plugins';
 import { helpers } from "./manager/defaults/helpers";
+import { PluginInstaller } from "./manager/plugin-installer";
+
 /**
  * Plugin Manager - Modular Entry Point
  * Uses IPC for plugin communication and modular tray/window management
@@ -72,9 +74,20 @@ main().then((result) => {
 			}
 			if (savePlugin) {
 				const SAVE_EVENTS = savePlugin as savePT;
-				await SAVE_EVENTS?.getData?.();
-				ipcHandler.postMessageToWebview({type: PLUGIN_NAMES.SAVE_EVENTS, data: SAVE_EVENTS?.eventCache});
+				const saveData = await SAVE_EVENTS?.getData?.();
+				const data = {...SAVE_EVENTS?.eventCache, ...saveData};
+				Object.keys(data).forEach((key) => {
+					console.log(key,Object.keys(data[key]).length)
+				});
+				ipcHandler.postMessageToWebview({type:PLUGIN_NAMES.SAVE_EVENTS, data: data});
 			}
+			const overlayPlugin = manager.getPlugin(OVERLAY_CONFIG.name);
+			if (overlayPlugin) {
+				const config = await PluginInstaller.getConfig(OVERLAY_CONFIG.name, '');
+				ipcHandler.postMessageToWebview({type: OVERLAY_CONFIG.name, data: config});
+			}
+			// for evite this for all future plugins is better make a array or map register when plugin emit changes or register existence then emit pushed data
+			// or implement a better way to handle this
 		}
 		
 	});

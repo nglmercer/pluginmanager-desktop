@@ -1,0 +1,35 @@
+# @import ChatMessageEvent from '../data/ChatMessageEvent.json'
+- id: ChatMessageEvent-id-1
+  name: Imported Rule
+  on: ChatMessageEvent
+  if:
+    operator: AND
+    conditions:
+      - field: ${vars.clean(ChatMessageEvent.content)}
+        operator: NOT_CONTAINS
+        value:
+          - emote
+      - field: ${vars.clean(ChatMessageEvent.content)}
+        operator: NEQ
+        value: ${vars.clean(vars.last())}
+      - field: ${vars.clean(ChatMessageEvent.content).length}
+        operator: GT
+        value: 3
+  do:
+    if:
+      field: ${ChatMessageEvent.content}
+      operator: NOT_CONTAINS
+      value:
+        - "!ia"
+        - "!ai"
+        - IA
+        - AI
+    do:
+      type: TTS
+      params:
+        message: ${ChatMessageEvent.content}
+    else:
+      type: ai_respond
+      params:
+        prompt: ${ChatMessageEvent.content}
+        user: ${ChatMessageEvent.sender.username}

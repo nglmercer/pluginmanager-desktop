@@ -1,0 +1,46 @@
+{
+  "userId": "7246819425637155846",
+  "secUid": "MS4wLjABAAAA5NKkwvSkYPBN54bky8KW_vu8hWqc1oGF21MRR70RNzjwE9-ujI6UZfm_yab0omqK",
+  "uniqueId": "angeldfx_",
+  "nickname": "Oink       Angel  🎮",
+  "profilePictureUrl": "https://p16-sign-va.tiktokcdn.com/tos-maliva-avt-0068/7edcb99b040aa97f2a9d62877e829fe7~tplv-tiktokx-cropcenter:100:100.webp?dr=14579&refresh_token=87f0c931&x-expires=1773453600&x-signature=p9I6w7%2Bcia3VmKWqQIewwtGtlfM%3D&t=4d5b0474&ps=13740610&shp=a5d48078&shcp=fdd36af4&idc=my3",
+  "followRole": 2,
+  "userBadges": [
+    {
+      "type": "privilege",
+      "privilegeId": "7196929090442529541",
+      "level": 11,
+      "badgeSceneType": 10
+    }
+  ],
+  "userSceneTypes": [
+    10
+  ],
+  "userDetails": {
+    "createTime": "0",
+    "bioDescription": "",
+    "profilePictureUrls": [
+      "https://p16-sign-va.tiktokcdn.com/tos-maliva-avt-0068/7edcb99b040aa97f2a9d62877e829fe7~tplv-tiktokx-cropcenter:100:100.webp?dr=14579&refresh_token=87f0c931&x-expires=1773453600&x-signature=p9I6w7%2Bcia3VmKWqQIewwtGtlfM%3D&t=4d5b0474&ps=13740610&shp=a5d48078&shcp=fdd36af4&idc=my3",
+      "https://p16-sign-va.tiktokcdn.com/tos-maliva-avt-0068/7edcb99b040aa97f2a9d62877e829fe7~tplv-tiktokx-cropcenter:100:100.jpeg?dr=14579&refresh_token=f30e266b&x-expires=1773453600&x-signature=78rJSKOlZONii69IAhBdofbnCgY%3D&t=4d5b0474&ps=13740610&shp=a5d48078&shcp=fdd36af4&idc=my3",
+      "https://p16-common-sign.tiktokcdn-us.com/tos-maliva-avt-0068/7edcb99b040aa97f2a9d62877e829fe7~tplv-tiktokx-cropcenter:100:100.webp?dr=18067&refresh_token=edfba1ac&x-expires=1773453600&x-signature=WF%2Bqx4tCerIH8hH66VGfROTjgog%3D&t=4d5b0474&ps=ae600521&shp=a5d48078&shcp=fdd36af4&idc=my3",
+      "https://p19-common-sign.tiktokcdn-us.com/tos-maliva-avt-0068/7edcb99b040aa97f2a9d62877e829fe7~tplv-tiktokx-cropcenter:100:100.webp?dr=18067&refresh_token=145eba3e&x-expires=1773453600&x-signature=s9yDRi3Kjo1KeWJO0RwK5re1QTY%3D&t=4d5b0474&ps=ae600521&shp=a5d48078&shcp=fdd36af4&idc=my3",
+      "https://p16-common-sign.tiktokcdn-us.com/tos-maliva-avt-0068/7edcb99b040aa97f2a9d62877e829fe7~tplv-tiktokx-cropcenter:100:100.jpeg?dr=18067&refresh_token=fc35690f&x-expires=1773453600&x-signature=%2F%2B58FHhDHqPxUj%2FRMyeFIt4YNng%3D&t=4d5b0474&ps=ae600521&shp=a5d48078&shcp=fdd36af4&idc=my3"
+    ]
+  },
+  "followInfo": {
+    "followingCount": 588,
+    "followerCount": 77,
+    "followStatus": 2,
+    "pushStatus": 0
+  },
+  "isModerator": false,
+  "isNewGifter": false,
+  "isSubscriber": false,
+  "topGifterRank": null,
+  "gifterLevel": 0,
+  "teamMemberLevel": 11,
+  "msgId": "7616187092288719624",
+  "createTime": "1773281743605",
+  "displayType": "pm_mt_guidance_share",
+  "label": "{0:user} shared the LIVE"
+}

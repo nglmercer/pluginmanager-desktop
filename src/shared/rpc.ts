@@ -1,6 +1,7 @@
 import { Electroview } from "electrobun/view";
 import type { PluginManagerRPC } from "./types";
-import { PLUGIN_NAMES } from "../bun/constants";
+import { PLUGIN_NAMES,OVERLAY_CONFIG } from "../bun/constants";
+import { ApiExecutor,type RequestConfig,type filesResponse } from "../../pluginfetch/utils/apifetch";
 // Type for async callback resolving
 type Resolver = (data: unknown) => void;
 type Rejecter = (error: Error) => void;
@@ -56,7 +57,26 @@ const rpc = Electroview.defineRPC<PluginManagerRPC>({
     },
   },
 });
+export interface ActionField {
+  readonly key: string;
+  readonly label: string;
+  readonly type: 'string' | 'number' | 'boolean' | 'select' | 'textarea';
+  readonly placeholder?: string;
+  readonly description?: string;
+  readonly labelKey?: string;
+  readonly descriptionKey?: string;
+  readonly options?: readonly { 
+    readonly value: string; 
+    readonly label: string; 
+    readonly labelKey?: string 
+  }[];
+  readonly default?: any;
+}
 
+export interface ActionConfig {
+  readonly type: string;
+  readonly fields: readonly ActionField[];
+}
 export const electroview = new Electroview({ rpc });
 export const EXPORT_CLICKED = 'TRIGGER_EDITOR_EXPORT_CLICKED';
 // Relay messages from Editor (postMessage) to Bun (RPC)
@@ -72,29 +92,95 @@ declare global {
       addAutocompleteData?: (alias: string, data: any, mode?: 'path' | 'value') => void;
       removeAutocompleteData?: (alias: string) => void;
       testEvent?: (eventName: string, data?: Record<string, any>, vars?: Record<string, any>, state?: Record<string, any>) => Promise<any>;
+      registerActionConfig?: (config: ActionConfig) => void;
+      getActionConfigs?: () => ActionConfig[];
+      //[key: string | string[], options?: (Omit<TOptions, "context"> & { context?: string | undefined; }) | undefined] | [key: string | string[], options: TOptionsBase & $Dictionary & { ...; }]
+      t?: (key: string, options?: Record<string, any> | any) => string;
     };
   }
 }
 window.logs = true
-
-window.addEventListener('message', (event) => {
+window.addEventListener('message',async (event) => {
   const { data } = event;
   if (!data || typeof data !== 'object') return;
+
   if (window.logs) console.log('[RPC] Message from Editor:', data);
   if (window.triggerEditor) {
     if (data.type === PLUGIN_NAMES.ACTION_REGISTRY){
-      window.triggerEditor.addAutocompleteData?.(PLUGIN_NAMES.ACTION_REGISTRY, data.data, 'value' as 'path' | 'value');
+      window.triggerEditor?.addAutocompleteData?.(PLUGIN_NAMES.ACTION_REGISTRY, data.data, 'value' as 'path' | 'value');
     }
     if (data.type === PLUGIN_NAMES.SAVE_EVENTS){
-      window.triggerEditor.addAutocompleteData?.(PLUGIN_NAMES.SAVE_EVENTS, data.data, 'path' as 'path' | 'value');      
+      Object.keys(data.data).forEach((key) => {
+        window.triggerEditor?.addAutocompleteData?.(key, data.data[key], 'path' as 'path' | 'value');
+      });
+    }
+    const TTS_config = {
+      type: 'TTS',
+      fields: [
+          { 
+            key: 'message', 
+            label: 'Text to Speak', 
+            labelKey: window.triggerEditor.t?.('tts.message', 'Text to Speak'), 
+            type: 'string', 
+            placeholder: window.triggerEditor.t?.('tts.placeholder', 'Enter text to speak...') 
+          }
+        ]
+    } as const;
+    window.triggerEditor.registerActionConfig?.(TTS_config);
+    // TODO: Add media upload config
+    if (data.type === OVERLAY_CONFIG.name){
+      const configData = data.data || data;
+      const defaultOptions = {...OVERLAY_CONFIG.default, ...configData};
+      
+      // Override url with 'getUrl' since this specific request fetches media options
+      const fetchUrl = configData.getUrl || OVERLAY_CONFIG.default.getUrl;
+      defaultOptions.url = fetchUrl;
+      
+      const mediaOptions = await getMedia(defaultOptions, fetchUrl);
+      const mediaConfig = {
+      type: OVERLAY_CONFIG.name.toUpperCase(),
+      fields: [
+        {
+          key: 'video',
+          label: 'Media',
+          labelKey: window.triggerEditor.t?.('media.label', 'Media'),
+          type: 'select',
+          options: mediaOptions,
+          placeholder: window.triggerEditor.t?.('media.placeholder', 'Select media...')
+        },
+        { key: 'duration', label: 'Duration (ms)', type: 'number', default: 5000 },
+        { key: 'volume', label: 'Volume (0-1)', type: 'number', default: 1 },
+        { key: 'muted', label: 'Muted', type: 'boolean', default: false }
+      ]
+    } as const;
+    window.triggerEditor.registerActionConfig?.(mediaConfig);
     }
   }
   if (data.type === EXPORT_CLICKED) {
     console.log('[RPC] Relaying TRIGGER_EDITOR_EXPORT to Bun');
     electroview.rpc!.send.editorExported(data.payload);
   }
-});
 
+});
+// http://localhost:3001/api/files?pageSize=100
+async function getMedia(config: RequestConfig ={
+  url: OVERLAY_CONFIG.default.getUrl,
+  method: OVERLAY_CONFIG.fetchFiles.method,
+  query: OVERLAY_CONFIG.fetchFiles.query
+}, filesUrl?: string): Promise<{ value: string; label: string }[]> {
+  config.url = filesUrl || config.url;
+  config.method = 'GET';
+  config.body = undefined;
+  console.log('getMedia config', config)
+  try {
+    const executor = new ApiExecutor();
+    const result = await executor.execute(config) as filesResponse;
+    return result.files.map((file) => ({ value: file.id, label: file.originalName, type: file.mimeType, mediaUrl: file.url }));
+  } catch (error) {
+    console.error('Error fetching media:', error);
+    return [];
+  }
+}
 /**
  * Invokes an RPC method on the Bun side with support for async responses
  */

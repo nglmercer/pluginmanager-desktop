@@ -46,7 +46,7 @@ export class PluginInstallerService {
     // ensureLoaded is private, but calling any public async method like get() will trigger it.
     await storage.get("__init__");
     const values = (storage as any).data;
-    console.log('[getConfig] values', values);
+    //console.log('[getConfig] values', values);
     if (key === "") {
         return values || {};
     }

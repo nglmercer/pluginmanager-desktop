@@ -1,0 +1,62 @@
+{
+  "emotes": [],
+  "comment": "bot de mi arda no me lee",
+  "userIdentity": {
+    "isMutualFollowingWithAnchor": true,
+    "isFollowerOfAnchor": true,
+    "isModeratorOfAnchor": true
+  },
+  "userId": "6965971785229878278",
+  "secUid": "MS4wLjABAAAA-wYQZPZCCXMOI4RNWYhfhZCiE8k5Pn4EnF2BQxhgGz53ivp6980EzmVijC6-sK5h",
+  "uniqueId": "lovin_002",
+  "nickname": "Lovin",
+  "profilePictureUrl": "https://p16-sign-va.tiktokcdn.com/tos-maliva-avt-0068/36331205c31b49ef3abeee01d4a02e72~tplv-tiktokx-cropcenter:100:100.webp?dr=14579&refresh_token=fe694f7f&x-expires=1773453600&x-signature=fIgaNMwXccCM63z9saYQGL7i9jQ%3D&t=4d5b0474&ps=13740610&shp=a5d48078&shcp=fdd36af4&idc=my",
+  "followRole": 2,
+  "userBadges": [
+    {
+      "type": "privilege",
+      "privilegeId": "7138381747292624676",
+      "level": 20,
+      "badgeSceneType": 8
+    },
+    {
+      "type": "privilege",
+      "privilegeId": "7196929090442529541",
+      "level": 12,
+      "badgeSceneType": 10
+    }
+  ],
+  "userSceneTypes": [
+    1,
+    6,
+    8,
+    10,
+    6,
+    1
+  ],
+  "userDetails": {
+    "createTime": "0",
+    "bioDescription": "",
+    "profilePictureUrls": [
+      "https://p16-sign-va.tiktokcdn.com/tos-maliva-avt-0068/36331205c31b49ef3abeee01d4a02e72~tplv-tiktokx-cropcenter:100:100.webp?dr=14579&refresh_token=fe694f7f&x-expires=1773453600&x-signature=fIgaNMwXccCM63z9saYQGL7i9jQ%3D&t=4d5b0474&ps=13740610&shp=a5d48078&shcp=fdd36af4&idc=my",
+      "https://p16-sign-va.tiktokcdn.com/tos-maliva-avt-0068/36331205c31b49ef3abeee01d4a02e72~tplv-tiktokx-cropcenter:100:100.jpeg?dr=14579&refresh_token=639d7858&x-expires=1773453600&x-signature=%2BQft8BAVsNNKhU3TJtPuPejoJrQ%3D&t=4d5b0474&ps=13740610&shp=a5d48078&shcp=fdd36af4&idc=my",
+      "https://p16-common-sign.tiktokcdn-us.com/tos-maliva-avt-0068/36331205c31b49ef3abeee01d4a02e72~tplv-tiktokx-cropcenter:100:100.webp?dr=18067&refresh_token=c0244b20&x-expires=1773453600&x-signature=gnLhGhOETq03HmClAcj8ruLCu3c%3D&t=4d5b0474&ps=ae600521&shp=a5d48078&shcp=fdd36af4&idc=my",
+      "https://p19-common-sign.tiktokcdn-us.com/tos-maliva-avt-0068/36331205c31b49ef3abeee01d4a02e72~tplv-tiktokx-cropcenter:100:100.webp?dr=18067&refresh_token=8e16a30c&x-expires=1773453600&x-signature=06nPvAruF8Oy%2F3zNbluhyTPjlO8%3D&t=4d5b0474&ps=ae600521&shp=a5d48078&shcp=fdd36af4&idc=my",
+      "https://p16-common-sign.tiktokcdn-us.com/tos-maliva-avt-0068/36331205c31b49ef3abeee01d4a02e72~tplv-tiktokx-cropcenter:100:100.jpeg?dr=18067&refresh_token=a62df113&x-expires=1773453600&x-signature=PItjfH3bXRIpcx%2Br6V%2B78%2FpSXpQ%3D&t=4d5b0474&ps=ae600521&shp=a5d48078&shcp=fdd36af4&idc=my"
+    ]
+  },
+  "followInfo": {
+    "followingCount": 529,
+    "followerCount": 273,
+    "followStatus": 2,
+    "pushStatus": 0
+  },
+  "isModerator": false,
+  "isNewGifter": false,
+  "isSubscriber": false,
+  "topGifterRank": null,
+  "gifterLevel": 20,
+  "teamMemberLevel": 12,
+  "msgId": "7616190561045187335",
+  "createTime": "1773282560498"
+}

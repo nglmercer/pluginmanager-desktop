@@ -186,7 +186,6 @@ export const ACTIONS = {
     MC_COMMAND: "minecraft:command",
     // New evaluation actions
     EVALUATE: "evaluate",
-    EVALUATE_AND_SPEAK: "evaluate_and_speak",
     DATETIME: "datetime",
     TTS_DIRECT: "tts_direct",
     AI_RESPOND: "ai_respond",
@@ -257,31 +256,68 @@ export const WS_CONSTANTS = {
 // Audio Constants
 // ============================================================================
 
-export const AUDIO = {
-    DEFAULT_VOLUME: "100%",
-    DEFAULT_RATE: "0%",
-    DEFAULT_PITCH: "0Hz",
-    BUFFER_TRACK_LABEL: (index: number) => `Buffer Track #${index}`,
-} as const;
+// export const AUDIO = {
+//     DEFAULT_VOLUME: "100%",
+//     DEFAULT_RATE: "0%",
+//     DEFAULT_PITCH: "0Hz",
+//     BUFFER_TRACK_LABEL: (index: number) => `Buffer Track #${index}`,
+// } as const;
 
-export type VoiceKey = 'F1' | 'F2' | 'F3' | 'F4' | 'F5' | 'M1' | 'M2' | 'M3' | 'M4' | 'M5';
+// export type VoiceKey = 'F1' | 'F2' | 'F3' | 'F4' | 'F5' | 'M1' | 'M2' | 'M3' | 'M4' | 'M5';
 
-export const VOICES_CLEAN: Record<VoiceKey, string> = {
-    F1: 'F1',
-    F2: 'F2',
-    F3: 'F3',
-    F4: 'F4',
-    F5: 'F5',
-    M1: 'M1',
-    M2: 'M2',
-    M3: 'M3',
-    M4: 'M4',
-    M5: 'M5',
-};
+// export const VOICES_CLEAN: Record<VoiceKey, string> = {
+//     F1: 'F1',
+//     F2: 'F2',
+//     F3: 'F3',
+//     F4: 'F4',
+//     F5: 'F5',
+//     M1: 'M1',
+//     M2: 'M2',
+//     M3: 'M3',
+//     M4: 'M4',
+//     M5: 'M5',
+// };
 
-export const VOICES_BIN = Object.fromEntries(
-    Object.entries(VOICES_CLEAN).map(([key, value]) => [key, `${value}.bin`])
-) as Record<VoiceKey, string>;
+// export const VOICES_BIN = Object.fromEntries(
+//     Object.entries(VOICES_CLEAN).map(([key, value]) => [key, `${value}.bin`])
+// ) as Record<VoiceKey, string>;
+export const OVERLAY_CONFIG = {
+  default: {
+    "url": "http://localhost:3001/api/alerts/trigger",
+    "getUrl": "http://localhost:3001/api/files",
+    "method": "POST" as const,
+    "headers": {
+      "Content-Type": "application/json",
+      // add token here
+      "Authorization": ""
+    },
+    "body": {
+      "duration": 5000,
+      "volume": 1,
+      "muted": false,
+      //"video": "/uploads/video/example.mp4"
+      //"image": "/uploads/image/example.png"
+      //"audio": "/uploads/audio/example.mp3"
+    }
+  },
+  fetchFiles: {
+    getUrl: "http://localhost:3001/api/files",
+    method: "GET" as const,
+    query: {
+      pageSize: "100"
+    }
+  },
+  name: "overlay-service"
+}
+//     const { video, audio, image, duration, volume, muted } = body;
+export interface OverlayParams {
+  video?: string;
+  audio?: string;
+  image?: string;
+  duration?: number;
+  volume?: number;
+  muted?: boolean;
+}
 
 // ============================================================================
 // IPC & Editor Constants

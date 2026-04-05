@@ -1,0 +1,30 @@
+{
+  "actions": [
+    "TTS",
+    "lastcomment",
+    "ai_respond",
+    "autosave",
+    "simulateEvent",
+    "emitEvent",
+    "OVERLAY_WEBHOOK",
+    "EXAMPLE_LIST_SERVICES",
+    "LIST_REGISTRY",
+    "LIST_HELPERS",
+    "REGISTRY_INFO"
+  ],
+  "actionsMap": {
+    "TTS": "TTS",
+    "lastcomment": "lastcomment",
+    "ai_respond": "ai_respond",
+    "autosave": "autosave",
+    "simulateEvent": "simulateEvent",
+    "emitEvent": "emitEvent",
+    "OVERLAY_WEBHOOK": "OVERLAY_WEBHOOK",
+    "EXAMPLE_LIST_SERVICES": "EXAMPLE_LIST_SERVICES",
+    "LIST_REGISTRY": "LIST_REGISTRY",
+    "LIST_HELPERS": "LIST_HELPERS",
+    "REGISTRY_INFO": "REGISTRY_INFO"
+  },
+  "timestamp": "2026-03-09T03:41:08.391Z",
+  "version": "1.0.0"
+}

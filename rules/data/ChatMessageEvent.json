@@ -1,0 +1,19 @@
+{
+  "id": "71ace08d-e03a-4f96-bb39-5fee0638d776",
+  "chatroom_id": 4398608,
+  "content": "hello",
+  "type": "message",
+  "created_at": "2026-03-12T02:27:51+00:00",
+  "sender": {
+    "id": 72154945,
+    "username": "Josephgres",
+    "slug": "josephgres",
+    "identity": {
+      "color": "#75FD46",
+      "badges": []
+    }
+  },
+  "metadata": {
+    "message_ref": "1773282469432"
+  }
+}
