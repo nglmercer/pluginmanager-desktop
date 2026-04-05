@@ -56,7 +56,8 @@ export class saveDataPlugin implements IPlugin {
 
   private async persistToDisk(eventName: string, data: any) {
     try {
-      const filePath = `./data/${eventName}.json`;
+    const cleanName = eventName.replace(/[^a-zA-Z0-9_]+/g, "_").replace(/^_+|_+$/g, "") || "unknown_event";
+    const filePath = `./data/${cleanName}.json`;
       await Bun.write(
         filePath, 
         JSON.stringify(data, null, 2), 
@@ -85,8 +86,8 @@ export class saveDataPlugin implements IPlugin {
             this.eventCache.set(eventName, allData[eventName]);
           }
         }
-        emit(this.name, allData);
       }
+      emit(this.name, allData);
     } catch (e) {
       console.warn("[Storage] Error reading data folder.", e);
     }
