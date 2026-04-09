@@ -1,0 +1,8 @@
+- id: 8bf8518f-1e80-4dbf-8ed2-96c9913090d5
+  name: TTS
+  description: "TTS rule, use it to test TTS or play from another rules or plugins with {message}"
+  on: TTS
+  do:
+    type: TTS
+    params:
+      message: ${TTS.message}
